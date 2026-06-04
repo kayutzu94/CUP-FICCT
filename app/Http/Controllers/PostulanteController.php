@@ -23,6 +23,11 @@ class PostulanteController extends Controller
     // CU4: Mostrar formulario de registro
     public function create()
     {
+        // Verificar rol
+        if (!in_array(auth()->user()->role, ['admin', 'coordinador'])) {
+            abort(403, 'No tienes permiso para registrar postulantes.');
+        }
+        
         $carreras = Carrera::all();
         return view('postulantes.create', compact('carreras'));
     }
@@ -30,6 +35,11 @@ class PostulanteController extends Controller
     // CU4: Registrar Postulante + CU13: Asignar segunda opción
     public function store(Request $request)
     {
+        // Verificar rol
+        if (!in_array(auth()->user()->role, ['admin', 'coordinador'])) {
+            abort(403, 'No tienes permiso para registrar postulantes.');
+        }
+        
         $validated = $request->validate([
             'ci' => 'required|unique:postulantes|max:20',
             'nombres' => 'required|max:50',
@@ -93,6 +103,11 @@ class PostulanteController extends Controller
     // CU5: Mostrar formulario de edición
     public function edit(Postulante $postulante)
     {
+        // Verificar rol
+        if (!in_array(auth()->user()->role, ['admin', 'coordinador'])) {
+            abort(403, 'No tienes permiso para editar postulantes.');
+        }
+        
         $carreras = Carrera::all();
         return view('postulantes.edit', compact('postulante', 'carreras'));
     }
@@ -100,6 +115,11 @@ class PostulanteController extends Controller
     // CU5: Modificar Datos del Postulante
     public function update(Request $request, Postulante $postulante)
     {
+        // Verificar rol
+        if (!in_array(auth()->user()->role, ['admin', 'coordinador'])) {
+            abort(403, 'No tienes permiso para editar postulantes.');
+        }
+        
         $validated = $request->validate([
             'ci' => ['required', 'max:20', Rule::unique('postulantes')->ignore($postulante->id)],
             'nombres' => 'required|max:50',
@@ -126,15 +146,28 @@ class PostulanteController extends Controller
             ->with('success', 'Postulante actualizado exitosamente');
     }
 
-    // CU6: Eliminar Postulante
+    // CU6: Eliminar Postulante (Solo Admin puede eliminar)
     public function destroy(Postulante $postulante)
     {
+        // Solo Admin puede eliminar
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'No tienes permiso para eliminar postulantes. Solo el administrador puede hacer esto.');
+        }
+        
+        // Liberar cupo de carrera
+        if ($postulante->carrera_asignada_id) {
+            $carrera = Carrera::find($postulante->carrera_asignada_id);
+            if ($carrera && $carrera->inscritos_actuales > 0) {
+                $carrera->decrement('inscritos_actuales');
+            }
+        }
+        
         $postulante->delete();
         return redirect()->route('postulantes.index')
             ->with('success', 'Postulante eliminado exitosamente');
     }
 
-    // CU7: Buscar Postulante
+    // CU7: Buscar Postulante (Todos pueden ver)
     public function search(Request $request)
     {
         $search = $request->get('search');
@@ -148,6 +181,7 @@ class PostulanteController extends Controller
         return view('postulantes.index', compact('postulantes'));
     }
 
+    // Ver detalles (Todos pueden ver)
     public function show(Postulante $postulante)
     {
         $postulante->load(['primeraCarrera', 'segundaCarrera', 'carreraAsignada', 'evaluaciones.materia']);

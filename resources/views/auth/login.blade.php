@@ -299,6 +299,11 @@
                 <div class="forgot-link">
                     <a href="{{ route('password.request') }}">
                         <i class="fas fa-key me-1"></i> ¿Olvidaste tu contraseña?
+                            <div class="register-link" style="text-align: center; margin-top: 15px;">
+                                <a href="{{ route('register') }}" style="color: #1a4a8a; text-decoration: none; font-size: 13px;">
+                                    <i class="fas fa-user-plus me-1"></i> ¿No tienes cuenta? Regístrate
+                                </a>
+                            </div>
                     </a>
                 </div>
             </form>
