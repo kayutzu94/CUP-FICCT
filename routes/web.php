@@ -82,4 +82,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reportes/grupos-mas-aprobados', [ReporteController::class, 'gruposMasAprobados'])->name('reportes.grupos-mas-aprobados');
 
     Route::get('/reportes/grupos-habilitados', [ReporteController::class, 'gruposHabilitados'])->name('reportes.grupos-habilitados');
+
+    Route::get('/importacion/usuarios', [App\Http\Controllers\ImportController::class, 'usuarios'])->name('importacion.usuarios');
+    Route::post('/importacion/usuarios', [App\Http\Controllers\ImportController::class, 'importUsers'])->name('importacion.usuarios.import');
+    Route::get('/importacion/plantilla-usuarios', [App\Http\Controllers\ImportController::class, 'plantillaUsuarios'])->name('importacion.plantilla-usuarios');
 });
