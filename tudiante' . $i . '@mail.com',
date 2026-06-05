@@ -1,0 +1,36 @@
+[90m= [39m[34;4mIlluminate\Database\Eloquent\Collection[39;24m {#8663
+    [34mall[39m: [
+      [34;4mApp\Models\Carrera[39;24m {#8667
+        [34mid[39m: [35m1[39m,
+        [34mnombre[39m: [32m"[39m[32mIngeniería en Sistemas[39m[32m"[39m,
+        [34mcupo[39m: [35m50[39m,
+        [34minscritos_actuales[39m: [35m4[39m,
+        [34mcreated_at[39m: [32m"[39m[32m2026-06-03 22:22:00[39m[32m"[39m,
+        [34mupdated_at[39m: [32m"[39m[32m2026-06-05 03:28:19[39m[32m"[39m,
+      },
+      [34;4mApp\Models\Carrera[39;24m {#8668
+        [34mid[39m: [35m3[39m,
+        [34mnombre[39m: [32m"[39m[32mIngeniería en Redes y Telecomunicaciones[39m[32m"[39m,
+        [34mcupo[39m: [35m50[39m,
+        [34minscritos_actuales[39m: [35m4[39m,
+        [34mcreated_at[39m: [32m"[39m[32m2026-06-03 22:22:00[39m[32m"[39m,
+        [34mupdated_at[39m: [32m"[39m[32m2026-06-05 03:28:19[39m[32m"[39m,
+      },
+      [34;4mApp\Models\Carrera[39;24m {#8665
+        [34mid[39m: [35m2[39m,
+        [34mnombre[39m: [32m"[39m[32mIngeniería en Informática[39m[32m"[39m,
+        [34mcupo[39m: [35m50[39m,
+        [34minscritos_actuales[39m: [35m4[39m,
+        [34mcreated_at[39m: [32m"[39m[32m2026-06-03 22:22:00[39m[32m"[39m,
+        [34mupdated_at[39m: [32m"[39m[32m2026-06-05 03:28:19[39m[32m"[39m,
+      },
+      [34;4mApp\Models\Carrera[39;24m {#8664
+        [34mid[39m: [35m4[39m,
+        [34mnombre[39m: [32m"[39m[32mIngeniería en Robótica[39m[32m"[39m,
+        [34mcupo[39m: [35m50[39m,
+        [34minscritos_actuales[39m: [35m9[39m,
+        [34mcreated_at[39m: [32m"[39m[32m2026-06-03 22:22:00[39m[32m"[39m,
+        [34mupdated_at[39m: [32m"[39m[32m2026-06-05 03:28:19[39m[32m"[39m,
+      },
+    ],
+  }

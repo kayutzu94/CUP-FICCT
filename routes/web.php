@@ -75,4 +75,9 @@ Route::middleware(['auth'])->group(function () {
         $grupo = \App\Models\Grupo::with('postulantes.carreraAsignada')->find($grupoId);
         return response()->json($grupo->postulantes ?? []);
     });
+
+    // Reportes
+    Route::get('/reportes/promedios', [ReporteController::class, 'promediosGenerales'])->name('reportes.promedios');
+    Route::get('/reportes/docentes-por-grupos', [ReporteController::class, 'docentesPorGrupos'])->name('reportes.docentes-por-grupos');
+    Route::get('/reportes/grupos-mas-aprobados', [ReporteController::class, 'gruposMasAprobados'])->name('reportes.grupos-mas-aprobados');
 });

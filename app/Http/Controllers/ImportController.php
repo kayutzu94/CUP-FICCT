@@ -85,4 +85,65 @@ class ImportController extends Controller
         return redirect()->route('importacion.index')
             ->with('success', "Importados: $importados postulantes. Errores: " . count($errores));
     }
+    // Importación masiva de usuarios (docentes, coordinadores)
+    public function importUsers(Request $request)
+    {
+        $request->validate([
+            'archivo' => 'required|mimes:csv,xlsx,xls',
+            'rol' => 'required|in:docente,coordinador'
+        ]);
+
+        $archivo = $request->file('archivo');
+        $handle = fopen($archivo->getPathname(), 'r');
+        $headers = fgetcsv($handle, 1000, ',');
+        $importados = 0;
+        $errores = [];
+
+        while (($data = fgetcsv($handle, 1000, ',')) !== false) {
+            $row = array_combine($headers, $data);
+            
+            $validator = \Validator::make($row, [
+                'ci' => 'required|unique:docentes',
+                'nombres' => 'required',
+                'apellidos' => 'required',
+                'email' => 'required|email|unique:users',
+                'profesion' => 'required',
+                'especialidad' => 'required',
+            ]);
+            
+            if ($validator->fails()) {
+                $errores[] = "Error en fila: " . implode(', ', $validator->errors()->all());
+                continue;
+            }
+            
+            // Crear docente
+            $docente = \App\Models\Docente::create([
+                'ci' => $row['ci'],
+                'nombres' => $row['nombres'],
+                'apellidos' => $row['apellidos'],
+                'email' => $row['email'],
+                'telefono' => $row['telefono'] ?? '',
+                'profesion' => $row['profesion'],
+                'especialidad' => $row['especialidad'],
+                'tiene_maestria' => $row['tiene_maestria'] ?? false,
+                'tiene_diplomado_educacion' => $row['tiene_diplomado'] ?? false,
+            ]);
+            
+            // Crear usuario asociado
+            \App\Models\User::create([
+                'name' => $docente->nombres . ' ' . $docente->apellidos,
+                'email' => $docente->email,
+                'password' => bcrypt($docente->ci),
+                'role' => $request->rol,
+                'docente_id' => $docente->id,
+            ]);
+            
+            $importados++;
+        }
+        
+        fclose($handle);
+        
+        return redirect()->route('importacion.index')
+            ->with('success', "Importados: $importados usuarios. Errores: " . count($errores));
+    }
 }

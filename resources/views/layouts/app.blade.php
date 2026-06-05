@@ -127,7 +127,16 @@
                             <i class="fas fa-chart-line"></i> Aprobados/Reprobados
                         </a>
                         <a class="nav-link {{ request()->routeIs('reportes.estadisticas') ? 'active' : '' }}" href="{{ route('reportes.estadisticas') }}">
-                            <i class="fas fa-chart-pie"></i> Estadísticas
+                            <i class="fas fa-chart-pie"></i> Estadísticas por Materia
+                        </a>
+                        <a class="nav-link {{ request()->routeIs('reportes.promedios') ? 'active' : '' }}" href="{{ route('reportes.promedios') }}">
+                            <i class="fas fa-calculator"></i> Promedios Generales
+                        </a>
+                        <a class="nav-link {{ request()->routeIs('reportes.docentes-por-grupos') ? 'active' : '' }}" href="{{ route('reportes.docentes-por-grupos') }}">
+                            <i class="fas fa-chalkboard-user"></i> Docentes por Grupos
+                        </a>
+                        <a class="nav-link {{ request()->routeIs('reportes.grupos-mas-aprobados') ? 'active' : '' }}" href="{{ route('reportes.grupos-mas-aprobados') }}">
+                            <i class="fas fa-trophy"></i> Grupos Más Aprobados
                         </a>
                     @endif
                     @if(Auth::user()->isDocente())
@@ -150,8 +159,10 @@
                                 <i class="fas fa-user-circle"></i> {{ Auth::user()->name }}
                                 @if(Auth::user()->isAdmin())
                                     <span class="badge ms-1" style="background: #0a2b5e;">Admin</span>
-                                @else
+                                @elseif(Auth::user()->isDocente())
                                     <span class="badge bg-info ms-1">Docente</span>
+                                @else
+                                    <span class="badge bg-warning ms-1">Coordinador</span>
                                 @endif
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">

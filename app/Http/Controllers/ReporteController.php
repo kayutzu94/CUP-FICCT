@@ -65,4 +65,45 @@ class ReporteController extends Controller
         
         return view('reportes.estadisticas', compact('estadisticas'));
     }
+    // CU28: Reporte de Promedios Generales
+    public function promediosGenerales()
+    {
+        $postulantes = Postulante::with(['carreraAsignada'])
+            ->orderBy('promedio_final', 'desc')
+            ->get();
+        
+        $promedioGeneral = $postulantes->avg('promedio_final') ?? 0;
+        $totalAprobados = $postulantes->where('estado_academico', 'aprobado')->count();
+        $totalReprobados = $postulantes->where('estado_academico', 'reprobado')->count();
+        
+        return view('reportes.promedios', compact('postulantes', 'promedioGeneral', 'totalAprobados', 'totalReprobados'));
+    }
+    // CU29: Reporte de Docentes por Grupos
+    public function docentesPorGrupos()
+    {
+        $grupos = Grupo::with(['aula', 'docentesAsignados'])->get();
+        
+        return view('reportes.docentes_por_grupos', compact('grupos'));
+    }
+    // CU30: Reporte de Grupos con mayor cantidad de aprobados
+    public function gruposMasAprobados()
+    {
+        $grupos = Grupo::withCount(['postulantes as total_estudiantes'])
+            ->withCount(['postulantes as aprobados' => function($query) {
+                $query->where('estado_academico', 'aprobado');
+            }])
+            ->withCount(['postulantes as reprobados' => function($query) {
+                $query->where('estado_academico', 'reprobado');
+            }])
+            ->orderBy('aprobados', 'desc')
+            ->get();
+        
+        foreach($grupos as $grupo) {
+            $grupo->tasa_aprobacion = $grupo->total_estudiantes > 0 
+                ? round(($grupo->aprobados / $grupo->total_estudiantes) * 100, 2) 
+                : 0;
+        }
+        
+        return view('reportes.grupos_mas_aprobados', compact('grupos'));
+    }
 }
