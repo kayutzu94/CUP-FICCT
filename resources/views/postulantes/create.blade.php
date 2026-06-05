@@ -56,10 +56,14 @@
                     <label>Colegio</label>
                     <input type="text" name="colegio" class="form-control" value="{{ old('colegio') }}">
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label>Título Bachiller</label>
-                    <input type="text" name="titulo_bachiller" class="form-control" value="{{ old('titulo_bachiller') }}">
-                </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="titulo_bachiller" class="form-label">Título de Bachiller <span class="text-danger">*</span></label>
+                        <input type="text" name="titulo_bachiller" id="titulo_bachiller" class="form-control" required>
+                        <small class="text-muted">El postulante debe contar con título de bachiller para ser admitido</small>
+                        @error('titulo_bachiller')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                    </div>
                 <div class="col-md-6 mb-3">
                     <label>Primera Carrera <span class="text-danger">*</span></label>
                     <select name="primera_carrera_id" class="form-control" required>

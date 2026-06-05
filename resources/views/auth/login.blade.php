@@ -8,6 +8,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('favicon.ico') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.ico') }}">  
     <style>
         * {
             font-family: 'Poppins', sans-serif;
@@ -263,7 +266,7 @@
                             <i class="fas fa-envelope"></i>
                         </span>
                         <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" 
-                               placeholder="admin@cup.com" value="{{ old('email', 'admin@cup.com') }}" required autofocus>
+                            placeholder="correo@ejemplo.com" value="{{ old('email') }}" required autofocus>
                     </div>
                     @error('email')
                         <div class="text-danger small mt-1">{{ $message }}</div>
@@ -277,7 +280,7 @@
                             <i class="fas fa-lock"></i>
                         </span>
                         <input type="password" name="password" id="password" class="form-control @error('password') is-invalid @enderror" 
-                               placeholder="••••••" value="admin123" required>
+                            placeholder="••••••" required>
                         <button type="button" class="password-toggle" id="togglePassword">
                             <i class="fas fa-eye-slash"></i>
                         </button>

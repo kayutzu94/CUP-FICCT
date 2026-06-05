@@ -8,6 +8,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('favicon.ico') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.ico') }}">
     <style>
         * { font-family: 'Poppins', sans-serif; }
         body { background-color: #f8f9fc; overflow-x: hidden; }
@@ -92,26 +95,43 @@
                     <small class="text-white-50">Admisión Universitaria</small>
                 </div>
                 <nav class="nav flex-column">
+                    <!-- DASHBOARD - Todos pueden ver -->
                     <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
                         <i class="fas fa-tachometer-alt"></i> Dashboard
                     </a>
-                    @if(Auth::user()->isAdmin())
+
+                    <!-- ADMIN y COORDINADOR pueden ver GESTIÓN -->
+                    @if(Auth::user()->isAdmin() || Auth::user()->isCoordinador())
                         <div class="text-white-50 small px-3 mt-3 mb-2">GESTIÓN</div>
+                        
+                        <!-- Postulantes - Admin y Coordinador pueden ver -->
                         <a class="nav-link {{ request()->routeIs('postulantes.*') ? 'active' : '' }}" href="{{ route('postulantes.index') }}">
                             <i class="fas fa-users"></i> Postulantes
                         </a>
+                        
+                        <!-- Grupos - Admin y Coordinador pueden ver -->
                         <a class="nav-link {{ request()->routeIs('grupos.*') ? 'active' : '' }}" href="{{ route('grupos.index') }}">
                             <i class="fas fa-layer-group"></i> Grupos
                         </a>
-                        <a class="nav-link {{ request()->routeIs('docentes.*') ? 'active' : '' }}" href="{{ route('docentes.index') }}">
-                            <i class="fas fa-chalkboard-user"></i> Docentes
-                        </a>
+                        
+                        <!-- Horarios - Admin y Coordinador pueden ver -->
                         <a class="nav-link {{ request()->routeIs('horarios.*') ? 'active' : '' }}" href="{{ route('horarios.create') }}">
                             <i class="fas fa-calendar-alt"></i> Horarios
                         </a>
+                        
+                        <!-- Asistencia - Admin y Coordinador pueden ver -->
                         <a class="nav-link {{ request()->routeIs('asistencias.*') ? 'active' : '' }}" href="{{ route('asistencias.create') }}">
                             <i class="fas fa-check-circle"></i> Asistencia
                         </a>
+                    @endif
+
+                    <!-- SOLO ADMIN puede ver DOCENTES y DATOS -->
+                    @if(Auth::user()->isAdmin())
+                        <!-- Docentes - Solo Admin -->
+                        <a class="nav-link {{ request()->routeIs('docentes.*') ? 'active' : '' }}" href="{{ route('docentes.index') }}">
+                            <i class="fas fa-chalkboard-user"></i> Docentes
+                        </a>
+                        
                         <div class="text-white-50 small px-3 mt-3 mb-2">DATOS</div>
                         <a class="nav-link {{ request()->routeIs('importacion.*') ? 'active' : '' }}" href="{{ route('importacion.index') }}">
                             <i class="fas fa-upload"></i> Importar
@@ -119,6 +139,7 @@
                         <a class="nav-link {{ request()->routeIs('exportacion.*') ? 'active' : '' }}" href="{{ route('exportacion.index') }}">
                             <i class="fas fa-download"></i> Exportar
                         </a>
+                        
                         <div class="text-white-50 small px-3 mt-3 mb-2">REPORTES</div>
                         <a class="nav-link {{ request()->routeIs('reportes.lista') ? 'active' : '' }}" href="{{ route('reportes.lista') }}">
                             <i class="fas fa-list"></i> Lista General
@@ -138,7 +159,29 @@
                         <a class="nav-link {{ request()->routeIs('reportes.grupos-mas-aprobados') ? 'active' : '' }}" href="{{ route('reportes.grupos-mas-aprobados') }}">
                             <i class="fas fa-trophy"></i> Grupos Más Aprobados
                         </a>
+                        <a class="nav-link {{ request()->routeIs('reportes.grupos-habilitados') ? 'active' : '' }}" href="{{ route('reportes.grupos-habilitados') }}">
+                            <i class="fas fa-calculator"></i> Cantidad de Grupos Habilitados
+                        </a>
                     @endif
+
+                    <!-- SOLO COORDINADOR puede ver REPORTES (limitados) -->
+                    @if(Auth::user()->isCoordinador())
+                        <div class="text-white-50 small px-3 mt-3 mb-2">REPORTES</div>
+                        <a class="nav-link {{ request()->routeIs('reportes.lista') ? 'active' : '' }}" href="{{ route('reportes.lista') }}">
+                            <i class="fas fa-list"></i> Lista General
+                        </a>
+                        <a class="nav-link {{ request()->routeIs('reportes.aprobados') ? 'active' : '' }}" href="{{ route('reportes.aprobados') }}">
+                            <i class="fas fa-chart-line"></i> Aprobados/Reprobados
+                        </a>
+                        <a class="nav-link {{ request()->routeIs('reportes.estadisticas') ? 'active' : '' }}" href="{{ route('reportes.estadisticas') }}">
+                            <i class="fas fa-chart-pie"></i> Estadísticas por Materia
+                        </a>
+                        <a class="nav-link {{ request()->routeIs('reportes.promedios') ? 'active' : '' }}" href="{{ route('reportes.promedios') }}">
+                            <i class="fas fa-calculator"></i> Promedios Generales
+                        </a>
+                    @endif
+
+                    <!-- SOLO DOCENTE puede ver su módulo -->
                     @if(Auth::user()->isDocente())
                         <div class="text-white-50 small px-3 mt-3 mb-2">DOCENTE</div>
                         <a class="nav-link {{ request()->routeIs('docente.carga-horaria') ? 'active' : '' }}" href="{{ route('docente.carga-horaria') }}">
@@ -161,7 +204,7 @@
                                     <span class="badge ms-1" style="background: #0a2b5e;">Admin</span>
                                 @elseif(Auth::user()->isDocente())
                                     <span class="badge bg-info ms-1">Docente</span>
-                                @else
+                                @elseif(Auth::user()->isCoordinador())
                                     <span class="badge bg-warning ms-1">Coordinador</span>
                                 @endif
                             </button>

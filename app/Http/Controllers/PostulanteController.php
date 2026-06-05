@@ -51,11 +51,20 @@ class PostulanteController extends Controller
             'email' => 'required|email|unique:postulantes',
             'colegio' => 'required',
             'ciudad' => 'required',
-            'titulo_bachiller' => 'required',
+            'titulo_bachiller' => 'required|string|min:5',
             'primera_carrera_id' => 'required|exists:carreras,id',
             'segunda_carrera_id' => 'required|exists:carreras,id|different:primera_carrera_id',
             'otros' => 'nullable',
         ]);
+
+        // Validación adicional para el título de bachiller
+        $tituloBachiller = strtolower(trim($request->titulo_bachiller));
+        $palabrasInvalidas = ['ninguno', 'ningun', 'no', 'n/a', 'na', 'sin', 'ninguna'];
+        
+        if (in_array($tituloBachiller, $palabrasInvalidas) || strlen($tituloBachiller) < 5) {
+            return back()->withErrors(['titulo_bachiller' => 'Debe ingresar un título de bachiller válido (ej: Bachiller en Humanidades, Técnico, etc.).'])
+                        ->withInput();
+        }
 
         $postulante = Postulante::create($validated);
         

@@ -80,4 +80,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reportes/promedios', [ReporteController::class, 'promediosGenerales'])->name('reportes.promedios');
     Route::get('/reportes/docentes-por-grupos', [ReporteController::class, 'docentesPorGrupos'])->name('reportes.docentes-por-grupos');
     Route::get('/reportes/grupos-mas-aprobados', [ReporteController::class, 'gruposMasAprobados'])->name('reportes.grupos-mas-aprobados');
+
+    Route::get('/reportes/grupos-habilitados', [ReporteController::class, 'gruposHabilitados'])->name('reportes.grupos-habilitados');
 });

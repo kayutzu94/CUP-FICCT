@@ -106,4 +106,27 @@ class ReporteController extends Controller
         
         return view('reportes.grupos_mas_aprobados', compact('grupos'));
     }
+    // Reporte de Cantidad de Grupos Habilitados
+    public function gruposHabilitados()
+    {
+        $totalInscritos = \App\Models\Postulante::count();
+        $totalGrupos = \App\Models\Grupo::count();
+        $capacidadPorGrupo = 70;
+        $gruposNecesarios = ceil($totalInscritos / $capacidadPorGrupo);
+        $capacidadTotal = $totalGrupos * $capacidadPorGrupo;
+        $capacidadUtilizada = $totalInscritos;
+        $capacidadLibre = $capacidadTotal - $capacidadUtilizada;
+        
+        $grupos = \App\Models\Grupo::withCount('postulantes')->get();
+        
+        return view('reportes.grupos_habilitados', compact(
+            'totalInscritos', 
+            'totalGrupos', 
+            'gruposNecesarios',
+            'capacidadTotal',
+            'capacidadUtilizada',
+            'capacidadLibre',
+            'grupos'
+        ));
+    }
 }
