@@ -86,4 +86,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/importacion/usuarios', [App\Http\Controllers\ImportController::class, 'usuarios'])->name('importacion.usuarios');
     Route::post('/importacion/usuarios', [App\Http\Controllers\ImportController::class, 'importUsers'])->name('importacion.usuarios.import');
     Route::get('/importacion/plantilla-usuarios', [App\Http\Controllers\ImportController::class, 'plantillaUsuarios'])->name('importacion.plantilla-usuarios');
+
+    // PayPal Routes
+    Route::get('/paypal/create', [App\Http\Controllers\PayPalController::class, 'createOrder'])->name('paypal.create');
+    Route::get('/paypal/capture', [App\Http\Controllers\PayPalController::class, 'captureOrder'])->name('paypal.capture');
+    Route::get('/paypal/cancel', [App\Http\Controllers\PayPalController::class, 'cancelOrder'])->name('paypal.cancel');
 });

@@ -6,6 +6,24 @@
         <h4><i class="fas fa-user-plus"></i> Registrar Nuevo Postulante</h4>
     </div>
     <div class="card-body">
+        @if(!session('pago_completado'))
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-info-circle"></i> Debes completar el pago de inscripción (Bs. 700.00) antes de registrar al postulante.
+            </div>
+            
+            <div class="text-center mb-3">
+                <a href="{{ route('paypal.create') }}" class="btn btn-primary btn-lg">
+                    <i class="fab fa-paypal"></i> Pagar Inscripción con PayPal
+                </a>
+            </div>
+            
+            <hr>
+        @else
+            <div class="alert alert-success mb-3">
+                <i class="fas fa-check-circle"></i> Pago completado exitosamente. Ya puedes registrar al postulante.
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('postulantes.store') }}">
             @csrf
             <div class="row">
@@ -56,14 +74,14 @@
                     <label>Colegio</label>
                     <input type="text" name="colegio" class="form-control" value="{{ old('colegio') }}">
                 </div>
-                    <div class="col-md-6 mb-3">
-                        <label for="titulo_bachiller" class="form-label">Título de Bachiller <span class="text-danger">*</span></label>
-                        <input type="text" name="titulo_bachiller" id="titulo_bachiller" class="form-control" required>
-                        <small class="text-muted">El postulante debe contar con título de bachiller para ser admitido</small>
-                        @error('titulo_bachiller')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
-                    </div>
+                <div class="col-md-6 mb-3">
+                    <label for="titulo_bachiller" class="form-label">Título de Bachiller <span class="text-danger">*</span></label>
+                    <input type="text" name="titulo_bachiller" id="titulo_bachiller" class="form-control" required>
+                    <small class="text-muted">El postulante debe contar con título de bachiller para ser admitido</small>
+                    @error('titulo_bachiller')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
+                </div>
                 <div class="col-md-6 mb-3">
                     <label>Primera Carrera <span class="text-danger">*</span></label>
                     <select name="primera_carrera_id" class="form-control" required>
