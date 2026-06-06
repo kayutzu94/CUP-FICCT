@@ -139,7 +139,10 @@
                         <a class="nav-link {{ request()->routeIs('exportacion.*') ? 'active' : '' }}" href="{{ route('exportacion.index') }}">
                             <i class="fas fa-download"></i> Exportar
                         </a>
-                        
+                        <a class="nav-link {{ request()->routeIs('importacion.usuarios') ? 'active' : '' }}" href="{{ route('importacion.usuarios') }}">
+                            <i class="fas fa-user-plus"></i> Importar Usuarios
+                        </a>
+
                         <div class="text-white-50 small px-3 mt-3 mb-2">REPORTES</div>
                         <a class="nav-link {{ request()->routeIs('reportes.lista') ? 'active' : '' }}" href="{{ route('reportes.lista') }}">
                             <i class="fas fa-list"></i> Lista General

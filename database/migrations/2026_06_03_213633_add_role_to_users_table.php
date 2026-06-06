@@ -8,10 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->enum('role', ['admin', 'docente'])->default('admin');
-            $table->foreignId('docente_id')->nullable()->constrained();
-        });
+        // Verificar si la columna role no existe
+        if (!Schema::hasColumn('users', 'role')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->enum('role', ['admin', 'docente', 'coordinador'])->default('docente');
+                $table->foreignId('docente_id')->nullable()->constrained();
+            });
+        }
     }
 
     public function down(): void

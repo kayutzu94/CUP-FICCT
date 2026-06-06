@@ -8,7 +8,7 @@
     <div class="card-body">
         @if(!session('pago_completado'))
             <div class="alert alert-info mb-3">
-                <i class="fas fa-info-circle"></i> Debes completar el pago de inscripción (Bs. 700.00) antes de registrar al postulante.
+                <i class="fas fa-info-circle"></i> Debes completar el pago de inscripción (USD $100.00) antes de registrar al postulante.
             </div>
             
             <div class="text-center mb-3">
