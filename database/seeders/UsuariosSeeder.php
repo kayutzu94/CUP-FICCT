@@ -13,7 +13,7 @@ class UsuariosSeeder extends Seeder
         $usuarios = [
             ['name' => 'Administrador', 'email' => 'admin@cup.edu.bo', 'password' => Hash::make('admin123'), 'role' => 'admin'],
             ['name' => 'Rolando Velasco', 'email' => 'rolando.vsoliz@cup.edu.bo', 'password' => Hash::make('admin123'), 'role' => 'admin'],
-            ['name' => 'Laura Patricia', 'email' => 'laura@cup.edu.bo', 'password' => Hash::make('123456'), 'role' => 'coordinador'],
+            ['name' => 'Nayeli Alvarez', 'email' => 'nayeli@cup.edu.bo', 'password' => Hash::make('123456'), 'role' => 'coordinador'],
             ['name' => 'Ricardo Antonio', 'email' => 'ricardo@cup.edu.bo', 'password' => Hash::make('123456'), 'role' => 'coordinador'],
             ['name' => 'Ana Maria Gonzales', 'email' => 'ana.gonzales.1@cup.edu.bo', 'password' => Hash::make('4567890'), 'role' => 'docente'],
             ['name' => 'Roberto Fernandez', 'email' => 'roberto.fernandez.2@cup.edu.bo', 'password' => Hash::make('5678901'), 'role' => 'docente'],
