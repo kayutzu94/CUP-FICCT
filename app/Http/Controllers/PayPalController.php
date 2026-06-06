@@ -13,7 +13,7 @@ class PayPalController extends Controller
         $clientId = env('PAYPAL_CLIENT_ID');
         $clientSecret = env('PAYPAL_CLIENT_SECRET');
 
-        // 1. Obtener Access Token de PayPal
+        // 1. Obtener Access Token
         $response = Http::withBasicAuth($clientId, $clientSecret)
             ->asForm()
             ->post('https://api-m.sandbox.paypal.com/v1/oauth2/token', [
@@ -22,46 +22,26 @@ class PayPalController extends Controller
 
         if (!$response->successful()) {
             return redirect()->route('postulantes.create')
-                ->with('error', 'No se pudo conectar con PayPal. Intente más tarde.');
+                ->with('error', 'No se pudo conectar con PayPal. Error: ' . $response->body());
         }
 
         $accessToken = $response->json()['access_token'];
 
-        // 2. Crear la orden de pago
+        // 2. Crear la orden de pago (más simple para pruebas)
         $orderData = [
             'intent' => 'CAPTURE',
-            'purchase_units' => [[
-                'reference_id' => 'CUP_' . uniqid(),
-                'description' => 'Pago de inscripción - Curso Preuniversitario CUP FICCT',
-                'amount' => [
-                    'currency_code' => 'USD',
-                    'value' => '50.00',
-                    'breakdown' => [
-                        'item_total' => [
-                            'currency_code' => 'USD',
-                            'value' => '50.00'
-                        ]
-                    ]
+            'purchase_units' => [
+                [
+                    'amount' => [
+                        'currency_code' => 'USD',
+                        'value' => '100.00',
+                    ],
                 ],
-                'items' => [
-                    [
-                        'name' => 'Inscripción CUP FICCT',
-                        'description' => 'Curso Preuniversitario - Facultad FICCT',
-                        'quantity' => '1',
-                        'unit_amount' => [
-                            'currency_code' => 'USD',
-                            'value' => '100.00'
-                        ]
-                    ]
-                ]
-            ]],
+            ],
             'application_context' => [
-                'brand_name' => 'CUP FICCT',
-                'landing_page' => 'BILLING',
-                'user_action' => 'PAY_NOW',
                 'return_url' => route('paypal.capture'),
                 'cancel_url' => route('paypal.cancel'),
-            ]
+            ],
         ];
 
         $response = Http::withToken($accessToken)
@@ -70,12 +50,12 @@ class PayPalController extends Controller
 
         if (!$response->successful()) {
             return redirect()->route('postulantes.create')
-                ->with('error', 'No se pudo crear la orden de pago.');
+                ->with('error', 'No se pudo crear la orden. Error: ' . $response->body());
         }
 
         $order = $response->json();
 
-        // Buscar el enlace de aprobación (approval_url)
+        // Buscar el enlace de aprobación
         foreach ($order['links'] as $link) {
             if ($link['rel'] === 'approve') {
                 return redirect()->away($link['href']);
@@ -83,7 +63,7 @@ class PayPalController extends Controller
         }
 
         return redirect()->route('postulantes.create')
-            ->with('error', 'No se pudo procesar el pago.');
+            ->with('error', 'No se encontró enlace de aprobación en PayPal.');
     }
 
     // Capturar el pago después de que el usuario aprueba
@@ -93,7 +73,7 @@ class PayPalController extends Controller
         $clientId = env('PAYPAL_CLIENT_ID');
         $clientSecret = env('PAYPAL_CLIENT_SECRET');
 
-        // 1. Obtener Access Token
+        // Obtener Access Token
         $response = Http::withBasicAuth($clientId, $clientSecret)
             ->asForm()
             ->post('https://api-m.sandbox.paypal.com/v1/oauth2/token', [
@@ -107,17 +87,12 @@ class PayPalController extends Controller
 
         $accessToken = $response->json()['access_token'];
 
-        // 2. Capturar el pago
+        // Capturar el pago
         $response = Http::withToken($accessToken)
             ->post("https://api-m.sandbox.paypal.com/v2/checkout/orders/{$token}/capture");
 
         if ($response->successful()) {
-            $data = $response->json();
-            
-            // Pago exitoso - Aquí puedes guardar la transacción en tu base de datos
-            // Guardar el estado del pago en la sesión
-            session(['pago_completado' => true, 'transaccion_id' => $data['id']]);
-            
+            session(['pago_completado' => true]);
             return redirect()->route('postulantes.create')
                 ->with('success', '¡Pago completado exitosamente! Ahora puedes registrar al postulante.');
         }
@@ -130,6 +105,6 @@ class PayPalController extends Controller
     public function cancelOrder()
     {
         return redirect()->route('postulantes.create')
-            ->with('error', 'Cancelaste el proceso de pago. Puedes intentarlo nuevamente.');
+            ->with('error', 'Cancelaste el proceso de pago.');
     }
 }
