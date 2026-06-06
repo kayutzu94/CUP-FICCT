@@ -7,8 +7,8 @@ use App\Models\Grupo;
 use App\Models\Docente;
 use App\Models\Carrera;
 use App\Models\Evaluacion;
+use App\Models\Materia;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -21,31 +21,40 @@ class DashboardController extends Controller
         $totalGrupos = Grupo::count();
         $totalDocentes = Docente::count();
         $totalCarreras = Carrera::count();
-        
-        // Calcular grupos necesarios
         $gruposNecesarios = $totalInscritos > 0 ? ceil($totalInscritos / 70) : 0;
         
-        // Estadísticas por materia
+        // Datos para gráfico de barras - Rendimiento por materia
         $estadisticasMaterias = Evaluacion::select(
                 'materias.nombre',
-                DB::raw('COALESCE(AVG(evaluaciones.promedio), 0) as promedio'),
-                DB::raw('COUNT(CASE WHEN evaluaciones.promedio >= 60 THEN 1 END) as aprobados'),
-                DB::raw('COUNT(CASE WHEN evaluaciones.promedio < 60 THEN 1 END) as reprobados')
+                DB::raw('COALESCE(AVG(evaluaciones.promedio), 0) as promedio')
             )
             ->join('materias', 'evaluaciones.materia_id', '=', 'materias.id')
             ->groupBy('materias.id', 'materias.nombre')
             ->get();
         
-        // Pasar todas las variables a la vista
-        return view('dashboard', [
-            'totalInscritos' => $totalInscritos,
-            'totalAprobados' => $totalAprobados,
-            'totalReprobados' => $totalReprobados,
-            'totalGrupos' => $totalGrupos,
-            'totalDocentes' => $totalDocentes,
-            'totalCarreras' => $totalCarreras,
-            'gruposNecesarios' => $gruposNecesarios,
-            'estadisticasMaterias' => $estadisticasMaterias
-        ]);
+        // Datos para gráfico de torta - Distribución de estados
+        $aprobados = Postulante::where('estado_academico', 'aprobado')->count();
+        $reprobados = Postulante::where('estado_academico', 'reprobado')->count();
+        $pendientes = Postulante::where('estado_academico', 'inscrito')->count();
+        
+        // Datos para gráfico de líneas - Evolución de inscripciones (últimos 30 días)
+        $evolucion = Postulante::select(
+                DB::raw('DATE(created_at) as fecha'),
+                DB::raw('COUNT(*) as total')
+            )
+            ->where('created_at', '>=', now()->subDays(30))
+            ->groupBy('fecha')
+            ->orderBy('fecha')
+            ->get();
+        
+        // Datos para gráfico de grupos
+        $gruposData = Grupo::withCount('postulantes')->get();
+        
+        return view('dashboard', compact(
+            'totalInscritos', 'totalAprobados', 'totalReprobados',
+            'totalGrupos', 'totalDocentes', 'totalCarreras',
+            'gruposNecesarios', 'estadisticasMaterias',
+            'aprobados', 'reprobados', 'pendientes', 'evolucion', 'gruposData'
+        ));
     }
 }
