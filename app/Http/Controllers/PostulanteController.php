@@ -176,15 +176,15 @@ class PostulanteController extends Controller
             ->with('success', 'Postulante eliminado exitosamente');
     }
 
-    // CU7: Buscar Postulante (Todos pueden ver)
+    // CU7: Buscar Postulante
     public function search(Request $request)
     {
         $search = $request->get('search');
-        $postulantes = Postulante::where('ci', 'LIKE', "%{$search}%")
-            ->orWhere('nombres', 'LIKE', "%{$search}%")
-            ->orWhere('apellidos', 'LIKE', "%{$search}%")
-            ->orWhere('email', 'LIKE', "%{$search}%")
-            ->orWhere('ci', 'LIKE', "%{$search}%")
+        
+        $postulantes = Postulante::where('ci', 'ILIKE', "%{$search}%")
+            ->orWhere('nombres', 'ILIKE', "%{$search}%")
+            ->orWhere('apellidos', 'ILIKE', "%{$search}%")
+            ->orWhere('email', 'ILIKE', "%{$search}%")
             ->paginate(15);
         
         return view('postulantes.index', compact('postulantes'));

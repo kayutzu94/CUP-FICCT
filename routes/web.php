@@ -27,8 +27,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     // Postulantes
-    Route::resource('postulantes', PostulanteController::class);
+    // Postulantes - PRIMERO la búsqueda
     Route::get('/postulantes/search', [PostulanteController::class, 'search'])->name('postulantes.search');
+    Route::resource('postulantes', PostulanteController::class);
     
     // Grupos
     Route::resource('grupos', GrupoController::class);
