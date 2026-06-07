@@ -60,9 +60,18 @@
                             </div>
                         </div>
                         <p><i class="fas fa-users"></i> Estudiantes: {{ $grupo->estudiantes_actuales }}</p>
-                        <a href="{{ route('grupos.show', $grupo) }}" class="btn btn-sm btn-info">
-                            <i class="fas fa-eye"></i> Ver Estudiantes
-                        </a>
+                        <div class="d-flex gap-2 mt-2">
+                            <a href="{{ route('grupos.show', $grupo) }}" class="btn btn-sm btn-info flex-fill">
+                                <i class="fas fa-eye"></i> Ver Estudiantes
+                            </a>
+                            <form action="{{ route('grupos.destroy', $grupo) }}" method="POST" style="flex: 1;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger w-100" onclick="return confirm('¿Está seguro de eliminar este grupo?')">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

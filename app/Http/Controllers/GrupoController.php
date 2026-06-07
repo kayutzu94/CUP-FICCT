@@ -105,4 +105,17 @@ class GrupoController extends Controller
 
         return redirect()->route('grupos.index')->with('success', 'Grupo creado');
     }
+
+    // Eliminar un grupo
+    public function destroy(Grupo $grupo)
+    {
+        // Primero, eliminar las asignaciones de estudiantes a este grupo
+        \App\Models\AsignacionGrupo::where('grupo_id', $grupo->id)->delete();
+        
+        // Luego eliminar el grupo
+        $grupo->delete();
+        
+        return redirect()->route('grupos.index')
+            ->with('success', 'Grupo eliminado exitosamente');
+    }
 }
