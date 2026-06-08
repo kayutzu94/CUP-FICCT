@@ -21,6 +21,9 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// Ruta POST para restablecer contraseña (solución temporal)
+Route::post('/reset-password', [App\Http\Controllers\Auth\NewPasswordController::class, 'store'])->name('password.update.post');
+
 // Rutas de autenticación (Breeze) - incluye login, registro, recuperación
 require __DIR__.'/auth.php';
 
