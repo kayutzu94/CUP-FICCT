@@ -110,6 +110,7 @@
                         <th>Día</th>
                         <th>Hora Inicio</th>
                         <th>Hora Fin</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -125,10 +126,24 @@
                             <td>{{ $horario->dia }}</td>
                             <td>{{ $horario->hora_inicio }}</td>
                             <td>{{ $horario->hora_fin }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ route('horarios.edit', $horario->id) }}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form action="{{ route('horarios.destroy', $horario->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este horario?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center">No hay horarios asignados aún</td>
+                            <td colspan="8" class="text-center">No hay horarios asignados aún</td>
                         </tr>
                     @endforelse
                 </tbody>
