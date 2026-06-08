@@ -78,12 +78,20 @@ class DocenteController extends Controller
         }
         
         foreach ($request->grupos as $grupoId) {
-            AsignacionDocente::create([
-                'docente_id' => $docente->id,
-                'grupo_id' => $grupoId,
-                'materia_id' => $request->materia_id,
-                'fecha_asignacion' => now(),
-            ]);
+            // Verificar si ya está asignado a este grupo con esta materia
+            $existe = AsignacionDocente::where('docente_id', $docente->id)
+                ->where('grupo_id', $grupoId)
+                ->where('materia_id', $request->materia_id)
+                ->exists();
+                
+            if (!$existe) {
+                AsignacionDocente::create([
+                    'docente_id' => $docente->id,
+                    'grupo_id' => $grupoId,
+                    'materia_id' => $request->materia_id,
+                    'fecha_asignacion' => now(),
+                ]);
+            }
         }
         
         return redirect()->route('docentes.index')
@@ -107,5 +115,55 @@ class DocenteController extends Controller
             ->get();
         
         return view('docentes.carga-horaria', compact('docente', 'cargaHoraria'));
+    }
+
+    // Ver detalles de un docente
+    public function show(Docente $docente)
+    {
+        $docente->load(['asignaciones.grupo', 'asignaciones.materia']);
+        return view('docentes.show', compact('docente'));
+    }
+
+    // Mostrar formulario de edición
+    public function edit(Docente $docente)
+    {
+        return view('docentes.edit', compact('docente'));
+    }
+
+    // Actualizar docente
+    public function update(Request $request, Docente $docente)
+    {
+        $request->validate([
+            'ci' => 'required|unique:docentes,ci,' . $docente->id,
+            'nombres' => 'required',
+            'apellidos' => 'required',
+            'email' => 'required|email|unique:docentes,email,' . $docente->id,
+            'telefono' => 'required',
+            'profesion' => 'required',
+            'especialidad' => 'required',
+        ]);
+        
+        $docente->update($request->all());
+        
+        return redirect()->route('docentes.index')
+            ->with('success', 'Docente actualizado exitosamente');
+    }
+
+    // Eliminar docente
+    public function destroy(Docente $docente)
+    {
+        // Eliminar usuario asociado
+        if ($docente->user) {
+            $docente->user->delete();
+        }
+        
+        // Eliminar asignaciones de grupos
+        $docente->asignaciones()->delete();
+        
+        // Eliminar docente
+        $docente->delete();
+        
+        return redirect()->route('docentes.index')
+            ->with('success', 'Docente eliminado exitosamente');
     }
 }

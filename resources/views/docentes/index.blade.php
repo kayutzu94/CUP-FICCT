@@ -55,52 +55,76 @@
                         </td>
                         <td>
                             <div class="btn-group" role="group">
-                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#asignarModal{{ $docente->id }}">
+                                <a href="{{ route('docentes.show', $docente) }}" class="btn btn-sm btn-info" title="Ver">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ route('docentes.edit', $docente) }}" class="btn btn-sm btn-warning" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#asignarModal{{ $docente->id }}" title="Asignar">
                                     <i class="fas fa-users"></i> Asignar
                                 </button>
-                                <form action="{{ route('docentes.destroy', $docente) }}" method="POST" style="display:inline">
+                                <form id="delete-form-{{ $docente->id }}" action="{{ route('docentes.destroy', $docente) }}" method="POST" style="display:inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="confirmDelete('delete-form-{{ $docente->id }}')">
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="confirmDelete('delete-form-{{ $docente->id }}')" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
                             </div>
                             
-                            <!-- Modal Asignar a Grupos -->
-                            <div class="modal fade" id="asignarModal{{ $docente->id }}" tabindex="-1">
+                            <!-- Modal Asignar Docente a Grupos -->
+                            <div class="modal fade" id="asignarModal{{ $docente->id }}" tabindex="-1" aria-hidden="true">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
                                         <div class="modal-header bg-primary text-white">
-                                            <h5 class="modal-title">Asignar Docente a Grupos</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            <h5 class="modal-title">
+                                                <i class="fas fa-users"></i> Asignar Docente a Grupos
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                                         </div>
                                         <form action="{{ route('docentes.asignar-grupos', $docente) }}" method="POST">
                                             @csrf
                                             <div class="modal-body">
-                                                <p><strong>Docente:</strong> {{ $docente->nombre_completo }}</p>
+                                                <div class="alert alert-info">
+                                                    <i class="fas fa-info-circle"></i>
+                                                    <strong>Docente:</strong> {{ $docente->nombre_completo }}
+                                                </div>
+
                                                 <div class="mb-3">
-                                                    <label>Seleccionar Materia</label>
-                                                    <select name="materia_id" class="form-control" required>
-                                                        <option value="">Seleccione...</option>
+                                                    <label class="form-label fw-bold">Materia <span class="text-danger">*</span></label>
+                                                    <select name="materia_id" class="form-select" required>
+                                                        <option value="">-- Seleccione una materia --</option>
                                                         @foreach(\App\Models\Materia::all() as $materia)
                                                             <option value="{{ $materia->id }}">{{ $materia->nombre }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
+
                                                 <div class="mb-3">
-                                                    <label>Seleccionar Grupos (mínimo 1, máximo 4)</label>
-                                                    <select name="grupos[]" class="form-control" multiple required>
+                                                    <label class="form-label fw-bold">Grupos <span class="text-danger">*</span></label>
+                                                    <select name="grupos[]" class="form-select" multiple size="4" required>
                                                         @foreach(\App\Models\Grupo::all() as $grupo)
-                                                            <option value="{{ $grupo->id }}">{{ $grupo->nombre }} ({{ $grupo->estudiantes_actuales }}/{{ $grupo->capacidad_maxima }})</option>
+                                                            <option value="{{ $grupo->id }}">
+                                                                {{ $grupo->nombre }} ({{ $grupo->codigo }}) - 
+                                                                {{ $grupo->estudiantes_actuales }}/{{ $grupo->capacidad_maxima }} estudiantes
+                                                            </option>
                                                         @endforeach
                                                     </select>
-                                                    <small class="text-muted">Presiona Ctrl para seleccionar múltiples grupos</small>
+                                                    <small class="text-muted d-block mt-2">
+                                                        <i class="fas fa-info-circle"></i>
+                                                        Mantén presionada la tecla <kbd>Ctrl</kbd> para seleccionar múltiples grupos.
+                                                        El docente puede ser asignado a un máximo de <strong>4 grupos</strong>.
+                                                    </small>
                                                 </div>
                                             </div>
                                             <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                <button type="submit" class="btn btn-primary">Asignar</button>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                    <i class="fas fa-times"></i> Cancelar
+                                                </button>
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-save"></i> Asignar Docente
+                                                </button>
                                             </div>
                                         </form>
                                     </div>
