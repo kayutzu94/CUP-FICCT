@@ -72,6 +72,7 @@ Route::middleware(['auth'])->group(function () {
     // ============================================
     Route::get('/asistencias/create', [AsistenciaController::class, 'create'])->name('asistencias.create');
     Route::post('/asistencias', [AsistenciaController::class, 'store'])->name('asistencias.store');
+    Route::get('/asistencias', [App\Http\Controllers\AsistenciaListadoController::class, 'index'])->name('asistencias.index');
     
     // ============================================
     // EVALUACIONES - NOTAS POR MATERIA

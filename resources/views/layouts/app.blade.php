@@ -165,6 +165,9 @@
                         <a class="nav-link {{ request()->routeIs('reportes.grupos-habilitados') ? 'active' : '' }}" href="{{ route('reportes.grupos-habilitados') }}">
                             <i class="fas fa-calculator"></i> Cantidad de Grupos Habilitados
                         </a>
+                        <a class="nav-link" href="{{ route('asistencias.index') }}">
+                            <i class="fas fa-calendar-check"></i> Listado de Asistencias
+                        </a>
                     @endif
 
                     <!-- SOLO COORDINADOR puede ver REPORTES (limitados) -->
