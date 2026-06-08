@@ -109,13 +109,22 @@ class GrupoController extends Controller
     // Eliminar un grupo
     public function destroy(Grupo $grupo)
     {
-        // Primero, eliminar las asignaciones de estudiantes a este grupo
+        // 1. Eliminar asignaciones de estudiantes
         \App\Models\AsignacionGrupo::where('grupo_id', $grupo->id)->delete();
         
-        // Luego eliminar el grupo
+        // 2. Eliminar horarios asociados
+        \App\Models\Horario::where('grupo_id', $grupo->id)->delete();
+        
+        // 3. Eliminar asignaciones de docentes
+        \App\Models\AsignacionDocente::where('grupo_id', $grupo->id)->delete();
+        
+        // 4. Eliminar asistencias asociadas
+        \App\Models\Asistencia::where('grupo_id', $grupo->id)->delete();
+        
+        // 5. Finalmente eliminar el grupo
         $grupo->delete();
         
         return redirect()->route('grupos.index')
-            ->with('success', 'Grupo eliminado exitosamente');
+            ->with('success', 'Grupo y todos sus registros asociados eliminados exitosamente');
     }
 }
