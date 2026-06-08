@@ -44,11 +44,29 @@ class ImportController extends Controller
                 continue;
             }
             
-            $primera = Carrera::where('nombre', 'like', '%' . $row['primera_carrera'] . '%')->first();
-            $segunda = Carrera::where('nombre', 'like', '%' . $row['segunda_carrera'] . '%')->first();
+            // Buscar carrera por nombre o por ID
+            $primera = null;
+            $segunda = null;
             
-            if (!$primera || !$segunda) {
-                $errores[] = "Carrera no encontrada para CI: " . $row['ci'];
+            // Si el valor es numérico, buscar por ID
+            if (is_numeric($row['primera_carrera'])) {
+                $primera = Carrera::find($row['primera_carrera']);
+            } else {
+                $primera = Carrera::where('nombre', $row['primera_carrera'])->first();
+            }
+            
+            if (is_numeric($row['segunda_carrera'])) {
+                $segunda = Carrera::find($row['segunda_carrera']);
+            } else {
+                $segunda = Carrera::where('nombre', $row['segunda_carrera'])->first();
+            }
+            
+            if (!$primera) {
+                $errores[] = "Primera carrera no encontrada para CI {$row['ci']}: " . $row['primera_carrera'];
+                continue;
+            }
+            if (!$segunda) {
+                $errores[] = "Segunda carrera no encontrada para CI {$row['ci']}: " . $row['segunda_carrera'];
                 continue;
             }
             
@@ -85,12 +103,13 @@ class ImportController extends Controller
         return redirect()->route('importacion.index')
             ->with('success', "Importados: $importados postulantes. Errores: " . count($errores));
     }
+    
     // Mostrar formulario de importación de usuarios
     public function usuarios()
     {
         return view('importacion.usuarios');
     }
-    // Importación masiva de usuarios (docentes, coordinadores)
+    
     // Procesar importación de usuarios
     public function importUsers(Request $request)
     {
