@@ -54,21 +54,21 @@
                             @endif
                         </td>
                         <td>
-                            <div class="btn-group" role="group">
-                                <a href="{{ route('docentes.show', $docente) }}" class="btn btn-sm btn-info" title="Ver">
-                                    <i class="fas fa-eye"></i>
+                            <div class="d-flex gap-1">
+                                <a href="{{ route('docentes.show', $docente) }}" class="btn btn-sm btn-info flex-fill" title="Ver">
+                                    <i class="fas fa-eye"></i> Ver
                                 </a>
-                                <a href="{{ route('docentes.edit', $docente) }}" class="btn btn-sm btn-warning" title="Editar">
-                                    <i class="fas fa-edit"></i>
+                                <a href="{{ route('docentes.edit', $docente) }}" class="btn btn-sm btn-warning flex-fill" title="Editar">
+                                    <i class="fas fa-edit"></i> Editar
                                 </a>
-                                <button type="button" class="btn btn-sm btn-primary" onclick="abrirModalAsignacion({{ $docente->id }})" title="Asignar">
+                                <button type="button" class="btn btn-sm btn-primary flex-fill" onclick="abrirModalAsignacion({{ $docente->id }})" title="Asignar">
                                     <i class="fas fa-users"></i> Asignar
                                 </button>
-                                <form id="delete-form-{{ $docente->id }}" action="{{ route('docentes.destroy', $docente) }}" method="POST" style="display:inline">
+                                <form id="delete-form-{{ $docente->id }}" action="{{ route('docentes.destroy', $docente) }}" method="POST" class="flex-fill">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="confirmDelete('delete-form-{{ $docente->id }}')" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
+                                    <button type="button" class="btn btn-sm btn-danger w-100" onclick="confirmDelete('delete-form-{{ $docente->id }}')" title="Eliminar">
+                                        <i class="fas fa-trash"></i> Eliminar
                                     </button>
                                 </form>
                             </div>

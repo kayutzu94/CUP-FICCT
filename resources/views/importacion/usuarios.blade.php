@@ -31,6 +31,10 @@
                 </ul>
             </div>
 
+            <div class="alert alert-warning">
+                <strong>⚠️ Nota:</strong> Los usuarios importados podrán iniciar sesión con su <strong>CI como contraseña</strong>.
+            </div>
+
             <form method="POST" action="{{ route('importacion.usuarios.import') }}" enctype="multipart/form-data">
                 @csrf
                 
@@ -59,6 +63,9 @@
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-upload"></i> Importar Usuarios
                 </button>
+                <a href="{{ route('importacion.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
             </form>
         </div>
     </div>
