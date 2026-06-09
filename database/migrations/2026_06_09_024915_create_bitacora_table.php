@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('bitacora', function (Blueprint $table) {
+            $table->id();
+            $table->string('usuario', 100);
+            $table->string('accion', 100);
+            $table->string('tabla_afectada', 50)->nullable();
+            $table->unsignedBigInteger('registro_id')->nullable();
+            $table->text('detalles')->nullable();
+            $table->string('ip', 45)->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('bitacora');
+    }
+};

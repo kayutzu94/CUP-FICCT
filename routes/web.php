@@ -24,8 +24,22 @@ Route::get('/', function () {
 // Ruta POST para restablecer contraseña (solución temporal)
 Route::post('/reset-password', [App\Http\Controllers\Auth\NewPasswordController::class, 'store'])->name('password.update.post');
 
-// Rutas de autenticación (Breeze) - incluye login, registro, recuperación
-require __DIR__.'/auth.php';
+// ============================================
+// RUTAS DE AUTENTICACIÓN (USANDO TU CONTROLLER)
+// ============================================
+Route::get('/login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login']);
+Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
+
+// Registrar usuario (opcional, mantener Breeze)
+Route::get('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'create'])->name('register');
+Route::post('/register', [App\Http\Controllers\Auth\RegisteredUserController::class, 'store']);
+
+// Recuperar contraseña
+Route::get('/forgot-password', [App\Http\Controllers\Auth\PasswordResetLinkController::class, 'create'])->name('password.request');
+Route::post('/forgot-password', [App\Http\Controllers\Auth\PasswordResetLinkController::class, 'store'])->name('password.email');
+Route::get('/reset-password/{token}', [App\Http\Controllers\Auth\NewPasswordController::class, 'create'])->name('password.reset');
+Route::post('/reset-password', [App\Http\Controllers\Auth\NewPasswordController::class, 'store'])->name('password.store');
 
 // ============================================
 // RUTAS PROTEGIDAS (requieren autenticación)
@@ -40,7 +54,6 @@ Route::middleware(['auth'])->group(function () {
     // ============================================
     // POSTULANTES - CRUD + BÚSQUEDA
     // ============================================
-    // La ruta de búsqueda debe ir ANTES del resource
     Route::get('/postulantes/search', [PostulanteController::class, 'search'])->name('postulantes.search');
     Route::resource('postulantes', PostulanteController::class);
     
@@ -62,14 +75,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/docente/carga-horaria', [DocenteController::class, 'cargaHoraria'])->name('docente.carga-horaria');
     
     // ============================================
-    // HORARIOS - CREAR, LISTAR , ELIMINAR y EDITAR HORARIOS ASIGNADOS
+    // HORARIOS - CREAR, LISTAR, ELIMINAR y EDITAR
     // ============================================
     Route::get('/horarios/create', [HorarioController::class, 'create'])->name('horarios.create');
     Route::post('/horarios', [HorarioController::class, 'store'])->name('horarios.store');
     Route::delete('/horarios/{horario}', [HorarioController::class, 'destroy'])->name('horarios.destroy');
     Route::get('/horarios/{horario}/edit', [HorarioController::class, 'edit'])->name('horarios.edit');
     Route::put('/horarios/{horario}', [HorarioController::class, 'update'])->name('horarios.update');
-        
+    
     // ============================================
     // ASISTENCIAS - REGISTRAR
     // ============================================
@@ -87,12 +100,9 @@ Route::middleware(['auth'])->group(function () {
     // ============================================
     // REPORTES
     // ============================================
-    // Reportes básicos
     Route::get('/reportes/lista', [ReporteController::class, 'lista'])->name('reportes.lista');
     Route::get('/reportes/aprobados', [ReporteController::class, 'aprobadosReprobados'])->name('reportes.aprobados');
     Route::get('/reportes/estadisticas', [ReporteController::class, 'estadisticasMaterias'])->name('reportes.estadisticas');
-    
-    // Reportes adicionales
     Route::get('/reportes/promedios', [ReporteController::class, 'promediosGenerales'])->name('reportes.promedios');
     Route::get('/reportes/docentes-por-grupos', [ReporteController::class, 'docentesPorGrupos'])->name('reportes.docentes-por-grupos');
     Route::get('/reportes/grupos-mas-aprobados', [ReporteController::class, 'gruposMasAprobados'])->name('reportes.grupos-mas-aprobados');
@@ -101,11 +111,8 @@ Route::middleware(['auth'])->group(function () {
     // ============================================
     // IMPORTACIÓN DE DATOS
     // ============================================
-    // Importación de postulantes (CSV/Excel)
     Route::get('/importacion', [ImportController::class, 'index'])->name('importacion.index');
     Route::post('/importacion', [ImportController::class, 'import'])->name('importacion.import');
-    
-    // Importación de usuarios (docentes/coordinadores)
     Route::get('/importacion/usuarios', [ImportController::class, 'usuarios'])->name('importacion.usuarios');
     Route::post('/importacion/usuarios', [ImportController::class, 'importUsers'])->name('importacion.usuarios.import');
     Route::get('/importacion/plantilla-usuarios', [ImportController::class, 'plantillaUsuarios'])->name('importacion.plantilla-usuarios');
@@ -115,14 +122,12 @@ Route::middleware(['auth'])->group(function () {
     // ============================================
     Route::get('/exportar/excel', [ExportController::class, 'exportExcel'])->name('export.excel');
     Route::get('/exportar/pdf', [ExportController::class, 'exportPDF'])->name('export.pdf');
-    
-    // Vista de exportación (menú)
     Route::get('/exportacion', function () {
         return view('exportacion.index');
     })->name('exportacion.index');
     
     // ============================================
-    // API PARA ASISTENCIAS (cargar estudiantes por grupo)
+    // API PARA ASISTENCIAS
     // ============================================
     Route::get('/api/grupos/{grupo}/estudiantes', function($grupoId) {
         $grupo = \App\Models\Grupo::with('postulantes.carreraAsignada')->find($grupoId);
@@ -136,6 +141,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/paypal/capture', [App\Http\Controllers\PayPalController::class, 'captureOrder'])->name('paypal.capture');
     Route::get('/paypal/cancel', [App\Http\Controllers\PayPalController::class, 'cancelOrder'])->name('paypal.cancel');
 
-    //Asistente de voz
+    // Asistente de voz
     Route::post('/voice-command', [App\Http\Controllers\VoiceCommandController::class, 'handle'])->name('voice.command');
+
+    // Bitácora
+    Route::get('/bitacora', [App\Http\Controllers\BitacoraController::class, 'index'])->name('bitacora.index');
+    Route::delete('/bitacora', [App\Http\Controllers\BitacoraController::class, 'limpiar'])->name('bitacora.limpiar');
 });

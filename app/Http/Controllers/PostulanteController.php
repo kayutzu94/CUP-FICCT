@@ -6,6 +6,7 @@ use App\Models\Postulante;
 use App\Models\Carrera;
 use App\Models\Evaluacion;
 use App\Models\Materia;
+use App\Models\Bitacora;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -73,6 +74,14 @@ class PostulanteController extends Controller
         
         // Crear evaluaciones para las 4 materias
         $this->crearEvaluacionesIniciales($postulante);
+
+        // Registrar en bitácora
+        Bitacora::registrar(
+            'Crear postulante',
+            'postulantes',
+            $postulante->id,
+            "CI: {$postulante->ci}, Nombre: {$postulante->nombres} {$postulante->apellidos}, Email: {$postulante->email}"
+        );
 
         return redirect()->route('postulantes.index')
             ->with('success', 'Postulante registrado exitosamente. Carrera asignada: ' . ($postulante->carreraAsignada->nombre ?? 'Pendiente'));
@@ -146,10 +155,20 @@ class PostulanteController extends Controller
             'otros' => 'nullable',
         ]);
 
+        $datosAntiguos = "CI: {$postulante->ci}, Nombre: {$postulante->nombres} {$postulante->apellidos}, Email: {$postulante->email}";
+        
         $postulante->update($validated);
         
         // Reasignar carrera si cambió
         $this->asignarCarreraPorCupo($postulante);
+
+        // Registrar en bitácora
+        Bitacora::registrar(
+            'Modificar postulante',
+            'postulantes',
+            $postulante->id,
+            "Antes: {$datosAntiguos} - Después: CI: {$postulante->ci}, Nombre: {$postulante->nombres} {$postulante->apellidos}, Email: {$postulante->email}"
+        );
 
         return redirect()->route('postulantes.index')
             ->with('success', 'Postulante actualizado exitosamente');
@@ -162,6 +181,14 @@ class PostulanteController extends Controller
         if (auth()->user()->role !== 'admin') {
             abort(403, 'No tienes permiso para eliminar postulantes. Solo el administrador puede hacer esto.');
         }
+        
+        // Registrar en bitácora antes de eliminar
+        Bitacora::registrar(
+            'Eliminar postulante',
+            'postulantes',
+            $postulante->id,
+            "CI: {$postulante->ci}, Nombre: {$postulante->nombres} {$postulante->apellidos}, Email: {$postulante->email}"
+        );
         
         // Liberar cupo de carrera
         if ($postulante->carrera_asignada_id) {
