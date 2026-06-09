@@ -82,6 +82,7 @@
     </style>
     @stack('styles')
 </head>
+@include('components.voice-assistant')
 <body>
     <button class="menu-toggle" id="menuToggle"><i class="fas fa-bars"></i></button>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>

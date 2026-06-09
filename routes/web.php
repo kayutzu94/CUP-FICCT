@@ -135,4 +135,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/paypal/create', [App\Http\Controllers\PayPalController::class, 'createOrder'])->name('paypal.create');
     Route::get('/paypal/capture', [App\Http\Controllers\PayPalController::class, 'captureOrder'])->name('paypal.capture');
     Route::get('/paypal/cancel', [App\Http\Controllers\PayPalController::class, 'cancelOrder'])->name('paypal.cancel');
+
+    //Asistente de voz
+    Route::post('/voice-command', [App\Http\Controllers\VoiceCommandController::class, 'handle'])->name('voice.command');
 });
