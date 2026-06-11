@@ -15,5 +15,6 @@ class DatabaseSeeder extends Seeder
         $this->call(DocentesSeeder::class); // ← MUY IMPORTANTE: Antes de Usuarios
         $this->call(GruposSeeder::class);
         $this->call(UsuariosSeeder::class); // ← Después de Docentes
+        $this->call(PostulantesSeeder::class);
     }
 }
