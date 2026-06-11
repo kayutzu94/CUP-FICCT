@@ -25,7 +25,7 @@
         
         .sidebar .nav {
             flex-direction: column;
-            padding-bottom: 30px;
+            padding-bottom: 40px; /* Un pequeño extra para evitar que se tape el último link en celulares */
         }
         
         @media (max-width: 768px) {
@@ -34,8 +34,8 @@
                 left: -280px;
                 width: 280px;
                 z-index: 1050;
-                overflow-y: auto;  /* ← AGREGADO: permite scroll */
-                max-height: 100vh;  /* ← AGREGADO: límite de altura */
+                overflow-y: auto;
+                max-height: 100vh;
             }
             .sidebar.mobile-open { left: 0; }
             .menu-toggle { display: block !important; }
@@ -158,6 +158,13 @@
                         <a class="nav-link {{ request()->routeIs('reportes.lista') ? 'active' : '' }}" href="{{ route('reportes.lista') }}">
                             <i class="fas fa-list"></i> Lista General
                         </a>
+                        <a class="nav-link {{ request()->routeIs('cupos.index') ? 'active' : '' }}" href="{{ route('cupos.index') }}">
+                            <i class="fas fa-chalkboard-user"></i> Cupos por Carrera
+                        </a>
+                        <!-- NUEVO ENLACE: Asignación por Mérito para Admin -->
+                        <a class="nav-link {{ request()->routeIs('asignacion.index') ? 'active' : '' }}" href="{{ route('asignacion.index') }}">
+                            <i class="fas fa-calculator"></i> Asignar Carreras por Mérito
+                        </a>
                         <a class="nav-link {{ request()->routeIs('reportes.aprobados') ? 'active' : '' }}" href="{{ route('reportes.aprobados') }}">
                             <i class="fas fa-chart-line"></i> Aprobados/Reprobados
                         </a>
@@ -189,6 +196,13 @@
                         <div class="text-white-50 small px-3 mt-3 mb-2">REPORTES</div>
                         <a class="nav-link {{ request()->routeIs('reportes.lista') ? 'active' : '' }}" href="{{ route('reportes.lista') }}">
                             <i class="fas fa-list"></i> Lista General
+                        </a>
+                        <a class="nav-link {{ request()->routeIs('cupos.index') ? 'active' : '' }}" href="{{ route('cupos.index') }}">
+                            <i class="fas fa-chalkboard-user"></i> Cupos por Carrera
+                        </a>
+                        <!-- NUEVO ENLACE: Asignación por Mérito para Coordinador -->
+                        <a class="nav-link {{ request()->routeIs('asignacion.index') ? 'active' : '' }}" href="{{ route('asignacion.index') }}">
+                            <i class="fas fa-calculator"></i> Asignar Carreras por Mérito
                         </a>
                         <a class="nav-link {{ request()->routeIs('reportes.aprobados') ? 'active' : '' }}" href="{{ route('reportes.aprobados') }}">
                             <i class="fas fa-chart-line"></i> Aprobados/Reprobados

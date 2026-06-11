@@ -12,9 +12,9 @@ class PostulantesSeeder extends Seeder
 {
     public function run(): void
     {
-        Postulante::truncate();
-        Evaluacion::truncate();
-        Carrera::query()->update(['inscritos_actuales' => 0]);
+        //Postulante::truncate();
+        //Evaluacion::truncate();
+        //Carrera::query()->update(['inscritos_actuales' => 0]);
         
         $carreras = Carrera::all();
         $materias = Materia::all();

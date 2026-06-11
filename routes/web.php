@@ -25,7 +25,7 @@ Route::get('/', function () {
 Route::post('/reset-password', [App\Http\Controllers\Auth\NewPasswordController::class, 'store'])->name('password.update.post');
 
 // ============================================
-// RUTAS DE AUTENTICACIÓN (USANDO TU CONTROLLER)
+// RUTAS DE AUTENTICACIÓN
 // ============================================
 Route::get('/login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login']);
@@ -109,6 +109,20 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reportes/grupos-habilitados', [ReporteController::class, 'gruposHabilitados'])->name('reportes.grupos-habilitados');
     
     // ============================================
+    // CUPOS POR CARRERA
+    // ============================================
+    Route::get('/cupos', function () {
+        $carreras = \App\Models\Carrera::all();
+        return view('cupos', compact('carreras'));
+    })->name('cupos.index');
+    
+    // ============================================
+    // ASIGNACIÓN AUTOMÁTICA DE CARRERAS POR MÉRITO
+    // ============================================
+    Route::get('/asignacion', [App\Http\Controllers\AsignacionCarrerasController::class, 'index'])->name('asignacion.index');
+    Route::post('/asignacion/ejecutar', [App\Http\Controllers\AsignacionCarrerasController::class, 'asignar'])->name('asignacion.ejecutar');
+    
+    // ============================================
     // IMPORTACIÓN DE DATOS
     // ============================================
     Route::get('/importacion', [ImportController::class, 'index'])->name('importacion.index');
@@ -147,4 +161,5 @@ Route::middleware(['auth'])->group(function () {
     // Bitácora
     Route::get('/bitacora', [App\Http\Controllers\BitacoraController::class, 'index'])->name('bitacora.index');
     Route::delete('/bitacora', [App\Http\Controllers\BitacoraController::class, 'limpiar'])->name('bitacora.limpiar');
+   
 });
