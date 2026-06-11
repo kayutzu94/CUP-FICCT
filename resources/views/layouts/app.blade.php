@@ -19,13 +19,23 @@
             background: linear-gradient(180deg, #0a2b5e 0%, #1a4a8a 100%);
             transition: all 0.3s ease;
             z-index: 1000;
+            overflow-y: auto;
+            max-height: 100vh;
         }
+        
+        .sidebar .nav {
+            flex-direction: column;
+            padding-bottom: 30px;
+        }
+        
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
                 left: -280px;
                 width: 280px;
                 z-index: 1050;
+                overflow-y: auto;  /* ← AGREGADO: permite scroll */
+                max-height: 100vh;  /* ← AGREGADO: límite de altura */
             }
             .sidebar.mobile-open { left: 0; }
             .menu-toggle { display: block !important; }
