@@ -28,7 +28,7 @@ class UsuariosSeeder extends Seeder
                     'name' => $u['name'],
                     'email' => $u['email'],
                     'password' => $u['password'],
-                    'role' => $u['role'],
+                    'role' => $u['role'],  // ← Cambiado de 'rol' a 'role'
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
