@@ -37,4 +37,9 @@ class User extends Authenticatable
     {
         return $this->role === 'coordinador';
     }
+
+    public function isPostulante()
+    {
+        return $this->role === 'postulante';
+    }
 }

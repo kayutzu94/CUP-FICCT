@@ -7,8 +7,10 @@ use App\Models\Carrera;
 use App\Models\Evaluacion;
 use App\Models\Materia;
 use App\Models\Bitacora;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Hash;
 
 class PostulanteController extends Controller
 {
@@ -33,7 +35,7 @@ class PostulanteController extends Controller
         return view('postulantes.create', compact('carreras'));
     }
 
-    // CU4: Registrar Postulante + CU13: Asignar segunda opción
+    // CU4: Registrar Postulante + CU13: Asignar segunda opción + Crear usuario automáticamente
     public function store(Request $request)
     {
         // Verificar rol
@@ -75,6 +77,19 @@ class PostulanteController extends Controller
         // Crear evaluaciones para las 4 materias
         $this->crearEvaluacionesIniciales($postulante);
 
+        // ** NUEVO: Crear usuario automáticamente para que el postulante pueda iniciar sesión **
+        // Verificar si ya existe un usuario con ese email
+        $userExists = User::where('email', $postulante->email)->exists();
+        
+        if (!$userExists) {
+            User::create([
+                'name' => $postulante->nombres . ' ' . $postulante->apellidos,
+                'email' => $postulante->email,
+                'password' => Hash::make($postulante->ci), // Contraseña = CI
+                'role' => 'postulante',
+            ]);
+        }
+
         // Registrar en bitácora
         Bitacora::registrar(
             'Crear postulante',
@@ -84,7 +99,7 @@ class PostulanteController extends Controller
         );
 
         return redirect()->route('postulantes.index')
-            ->with('success', 'Postulante registrado exitosamente. Carrera asignada: ' . ($postulante->carreraAsignada->nombre ?? 'Pendiente'));
+            ->with('success', 'Postulante registrado exitosamente. Carrera asignada: ' . ($postulante->carreraAsignada->nombre ?? 'Pendiente') . ' | Credenciales: ' . $postulante->email . ' / ' . $postulante->ci);
     }
 
     // CU13: Lógica de asignación por cupos
@@ -162,6 +177,14 @@ class PostulanteController extends Controller
         // Reasignar carrera si cambió
         $this->asignarCarreraPorCupo($postulante);
 
+        // Actualizar usuario asociado si el email cambió
+        $user = User::where('email', $datosAntiguos)->first();
+        if ($user) {
+            $user->email = $postulante->email;
+            $user->name = $postulante->nombres . ' ' . $postulante->apellidos;
+            $user->save();
+        }
+
         // Registrar en bitácora
         Bitacora::registrar(
             'Modificar postulante',
@@ -189,6 +212,12 @@ class PostulanteController extends Controller
             $postulante->id,
             "CI: {$postulante->ci}, Nombre: {$postulante->nombres} {$postulante->apellidos}, Email: {$postulante->email}"
         );
+        
+        // Eliminar usuario asociado
+        $user = User::where('email', $postulante->email)->first();
+        if ($user) {
+            $user->delete();
+        }
         
         // Liberar cupo de carrera
         if ($postulante->carrera_asignada_id) {

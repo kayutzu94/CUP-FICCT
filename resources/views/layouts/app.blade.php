@@ -225,6 +225,18 @@
                             <i class="fas fa-check-circle"></i> Registrar Asistencia
                         </a>
                     @endif
+
+                    <!-- SOLO POSTULANTE puede ver su módulo -->
+                    @if(Auth::user()->isPostulante())
+                        <div class="text-white-50 small px-3 mt-3 mb-2">MI CUENTA</div>
+                        <a class="nav-link {{ request()->routeIs('postulante.dashboard') ? 'active' : '' }}" href="{{ route('postulante.dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Mi Panel
+                        </a>
+                        <a class="nav-link" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </a>
+                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">@csrf</form>
+                    @endif
                 </nav>
             </div>
             <div class="col-md-9 col-lg-10 ms-sm-auto content-wrapper">
@@ -240,6 +252,8 @@
                                     <span class="badge bg-info ms-1">Docente</span>
                                 @elseif(Auth::user()->isCoordinador())
                                     <span class="badge bg-warning ms-1">Coordinador</span>
+                                @elseif(Auth::user()->isPostulante())
+                                    <span class="badge bg-success ms-1">Postulante</span>
                                 @endif
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">

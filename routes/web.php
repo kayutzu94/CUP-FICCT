@@ -56,6 +56,11 @@ Route::middleware(['auth'])->group(function () {
     // ============================================
     Route::get('/postulantes/search', [PostulanteController::class, 'search'])->name('postulantes.search');
     Route::resource('postulantes', PostulanteController::class);
+
+    // ============================================
+    // POSTULANTE PANEL (dashboard para postulantes)
+    // ============================================
+    Route::get('/postulante/dashboard', [App\Http\Controllers\PostulantePanelController::class, 'dashboard'])->name('postulante.dashboard');
     
     // ============================================
     // GRUPOS - CRUD + ASIGNACIÓN AUTOMÁTICA
