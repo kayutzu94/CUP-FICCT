@@ -11,7 +11,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'rol', 'docente_id', // ← Cambiar 'role' a 'rol'
+        'name', 'email', 'password', 'role', 'docente_id',
     ];
 
     protected $hidden = [
@@ -25,16 +25,16 @@ class User extends Authenticatable
 
     public function isAdmin()
     {
-        return $this->rol === 'admin'; // ← Cambiar 'role' a 'rol'
+        return $this->role === 'admin';
     }
 
     public function isDocente()
     {
-        return $this->rol === 'docente'; // ← Cambiar 'role' a 'rol'
+        return $this->role === 'docente';
     }
     
     public function isCoordinador()
     {
-        return $this->rol === 'coordinador'; // ← Cambiar 'role' a 'rol'
+        return $this->role === 'coordinador';
     }
 }
