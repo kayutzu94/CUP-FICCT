@@ -2,19 +2,112 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\Postulante;
 use App\Models\Evaluacion;
 use App\Models\Materia;
 use App\Models\Grupo;
+use App\Models\Carrera;
 use App\Models\AsignacionDocente;
 
 class ReporteController extends Controller
 {
-    // CU22: Reporte lista general de postulantes
-    public function lista()
+    // CU22: Reporte lista general de postulantes (Mejorado con filtros robustos y avanzados)
+    public function lista(Request $request)
     {
-        $postulantes = Postulante::with(['carreraAsignada', 'primeraCarrera', 'segundaCarrera'])->get();
-        return view('reportes.lista', compact('postulantes'));
+        // Query base: solo aprobados
+        $query = Postulante::where('estado_academico', 'aprobado')
+            ->with(['primeraCarrera', 'segundaCarrera', 'carreraAsignada']);
+                
+        // FILTRO 1: Por tipo de asignación (primera opción, segunda opción, lista espera)
+        if ($request->filled('tipo_asignacion')) {
+            switch ($request->tipo_asignacion) {
+                case 'primera':
+                    $query->whereNotNull('carrera_asignada_id')
+                          ->whereRaw('carrera_asignada_id = primera_carrera_id');
+                    break;
+                                    
+                case 'segunda':
+                    $query->whereNotNull('carrera_asignada_id')
+                          ->whereRaw('carrera_asignada_id = segunda_carrera_id');
+                    break;
+                                    
+                case 'lista_espera':
+                    $query->whereNull('carrera_asignada_id');
+                    break;
+            }
+        }
+                
+        // FILTRO 2: Por carrera específica
+        if ($request->filled('carrera_id')) {
+            $query->where('carrera_asignada_id', $request->carrera_id);
+        }
+                
+        // FILTRO 3: Búsqueda por nombre, CI, email o nombre completo concatenado
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nombres', 'LIKE', "%{$search}%")
+                  ->orWhere('apellidos', 'LIKE', "%{$search}%")
+                  ->orWhere('ci', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%")
+                  ->orWhereRaw("CONCAT(nombres, ' ', apellidos) LIKE ?", ["%{$search}%"]);
+            });
+        }
+
+        // FILTRO 4: Promedio mínimo
+        if ($request->filled('promedio_min')) {
+            $query->where('promedio_final', '>=', $request->promedio_min);
+        }
+
+        // FILTRO 5: Promedio máximo
+        if ($request->filled('promedio_max')) {
+            $query->where('promedio_final', '<=', $request->promedio_max);
+        }
+
+        // FILTRO 6: Sexo
+        if ($request->filled('sexo')) {
+            $query->where('sexo', $request->sexo);
+        }
+
+        // FILTRO 7: Ciudad
+        if ($request->filled('ciudad')) {
+            $query->where('ciudad', 'LIKE', "%{$request->ciudad}%");
+        }
+                
+        // Ordenar por promedio (mejores primero)
+        $query->orderBy('promedio_final', 'desc');
+                
+        // Paginar resultados manteniendo los parámetros de búsqueda en la URL
+        $postulantes = $query->paginate(20);
+                
+        // ESTADÍSTICAS globales fijas (no se ven afectadas por los filtros)
+        $totalAprobados = Postulante::where('estado_academico', 'aprobado')->count();
+                
+        $primeraOpcion = Postulante::where('estado_academico', 'aprobado')
+                                   ->whereNotNull('carrera_asignada_id')
+                                   ->whereRaw('carrera_asignada_id = primera_carrera_id')
+                                   ->count();
+                                           
+        $segundaOpcion = Postulante::where('estado_academico', 'aprobado')
+                                   ->whereNotNull('carrera_asignada_id')
+                                   ->whereRaw('carrera_asignada_id = segunda_carrera_id')
+                                   ->count();
+                                           
+        $listaEspera = Postulante::where('estado_academico', 'aprobado')
+                                 ->whereNull('carrera_asignada_id')
+                                 ->count();
+                
+        $carreras = Carrera::orderBy('nombre')->get();
+                
+        return view('reportes.lista', compact(
+            'postulantes',
+            'totalAprobados',
+            'primeraOpcion',
+            'segundaOpcion',
+            'listaEspera',
+            'carreras'
+        ));
     }
 
     // CU23: Reporte de Aprobados y Reprobados
@@ -65,6 +158,7 @@ class ReporteController extends Controller
         
         return view('reportes.estadisticas', compact('estadisticas'));
     }
+
     // CU28: Reporte de Promedios Generales
     public function promediosGenerales()
     {
@@ -78,6 +172,7 @@ class ReporteController extends Controller
         
         return view('reportes.promedios', compact('postulantes', 'promedioGeneral', 'totalAprobados', 'totalReprobados'));
     }
+
     // CU29: Reporte de Docentes por Grupos
     public function docentesPorGrupos()
     {
@@ -85,6 +180,7 @@ class ReporteController extends Controller
         
         return view('reportes.docentes_por_grupos', compact('grupos'));
     }
+
     // CU30: Reporte de Grupos con mayor cantidad de aprobados
     public function gruposMasAprobados()
     {
@@ -106,18 +202,19 @@ class ReporteController extends Controller
         
         return view('reportes.grupos_mas_aprobados', compact('grupos'));
     }
+
     // Reporte de Cantidad de Grupos Habilitados
     public function gruposHabilitados()
     {
-        $totalInscritos = \App\Models\Postulante::count();
-        $totalGrupos = \App\Models\Grupo::count();
+        $totalInscritos = Postulante::count();
+        $totalGrupos = Grupo::count();
         $capacidadPorGrupo = 70;
         $gruposNecesarios = ceil($totalInscritos / $capacidadPorGrupo);
         $capacidadTotal = $totalGrupos * $capacidadPorGrupo;
         $capacidadUtilizada = $totalInscritos;
         $capacidadLibre = $capacidadTotal - $capacidadUtilizada;
         
-        $grupos = \App\Models\Grupo::withCount('postulantes')->get();
+        $grupos = Grupo::withCount('postulantes')->get();
         
         return view('reportes.grupos_habilitados', compact(
             'totalInscritos', 
