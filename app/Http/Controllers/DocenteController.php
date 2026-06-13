@@ -14,9 +14,26 @@ use Illuminate\Support\Facades\Hash;
 
 class DocenteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $docentes = Docente::paginate(10);
+        $query = Docente::query()->with('asignaciones');
+        
+        // Filtro por cumplimiento de requisitos mapeado a tu base de datos
+        if ($request->has('filter_requisitos')) {
+            if ($request->filter_requisitos === 'cumple') {
+                $query->where('tiene_maestria', true)
+                      ->where('tiene_diplomado_educacion', true)
+                      ->where('activo', true);
+            } elseif ($request->filter_requisitos === 'no_cumple') {
+                $query->where(function($q) {
+                    $q->where('tiene_maestria', false)
+                      ->orWhere('tiene_diplomado_educacion', false)
+                      ->orWhere('activo', false);
+                });
+            }
+        }
+        
+        $docentes = $query->paginate(10);
         return view('docentes.index', compact('docentes'));
     }
 
@@ -61,41 +78,58 @@ class DocenteController extends Controller
         return redirect()->route('docentes.index')->with('success', $mensaje);
     }
 
-    // CU16: Asignar docente a grupos (1-4 grupos)
+    // CU16: Asignar docente a grupos (1-4 grupos) - MODIFICADO CON DOS VALIDACIONES
     public function asignarGrupos(Request $request, Docente $docente)
     {
+        // VALIDACIÓN 1: VERIFICAR REQUISITOS DEL DOCENTE
+        if (!$docente->cumpleRequisitos()) {
+            $pendientes = $docente->getRequisitosPendientes();
+            $mensaje = sprintf(
+                '❌ No se puede asignar. El docente %s NO cumple con los requisitos necesarios.📋 Faltan: %s',
+                $docente->nombre_completo,
+                $implode = implode(', ', $pendientes)
+            );
+            
+            return redirect()->route('docentes.index')
+                ->with('error', $mensaje);
+        }
+        
+        // VALIDACIÓN 2: VERIFICAR LÍMITE DE GRUPOS (MÁXIMO 4)
         $request->validate([
-            'grupos' => 'required|array|min:1|max:4',
+            'grupos' => 'required|array|min:1',
             'grupos.*' => 'exists:grupos,id',
             'materia_id' => 'required|exists:materias,id',
         ]);
         
         $asignacionesActuales = AsignacionDocente::where('docente_id', $docente->id)->count();
         $nuevasAsignaciones = count($request->grupos);
+        $totalAsignaciones = $asignacionesActuales + $nuevasAsignaciones;
         
-        if ($asignacionesActuales + $nuevasAsignaciones > 4) {
-            return back()->with('error', 'Un docente no puede ser asignado a más de 4 grupos. Actualmente tiene ' . $asignacionesActuales . ' grupos.');
+        if ($totalAsignaciones > 4) {
+            $mensaje = sprintf(
+                '❌ No se puede asignar. El docente %s ya tiene %d grupo(s) asignado(s). ' .
+                'Un docente puede tener máximo 4 grupos. ' .
+                'Estás intentando asignar %d grupo(s) más, lo que daría un total de %d grupos.',
+                $docente->nombre_completo,
+                $asignacionesActuales,
+                $nuevasAsignaciones,
+                $totalAsignaciones
+            );
+            
+            return redirect()->route('docentes.index')
+                ->with('error', $mensaje);
         }
         
+        // REALIZAR LAS ASIGNACIONES
         foreach ($request->grupos as $grupoId) {
-            // Verificar si ya está asignado a este grupo con esta materia
-            $existe = AsignacionDocente::where('docente_id', $docente->id)
-                ->where('grupo_id', $grupoId)
-                ->where('materia_id', $request->materia_id)
-                ->exists();
-                
-            if (!$existe) {
-                AsignacionDocente::create([
-                    'docente_id' => $docente->id,
-                    'grupo_id' => $grupoId,
-                    'materia_id' => $request->materia_id,
-                    'fecha_asignacion' => now(),
-                ]);
-            }
+            AsignacionDocente::updateOrCreate(
+                ['docente_id' => $docente->id, 'grupo_id' => $grupoId],
+                ['materia_id' => $request->materia_id, 'fecha_asignacion' => now()]
+            );
         }
         
         return redirect()->route('docentes.index')
-            ->with('success', 'Docente asignado a ' . $nuevasAsignaciones . ' grupo(s)');
+            ->with('success', "✅ Docente asignado a {$nuevasAsignaciones} grupo(s) exitosamente");
     }
 
     // CU20: Ver carga horaria (acceso exclusivo del docente)
