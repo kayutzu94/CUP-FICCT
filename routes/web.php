@@ -10,6 +10,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\AsignacionCuposController;
+use App\Http\Controllers\AsignacionCarrerasController;
+use App\Http\Controllers\AsignacionDocenteController;
+use App\Http\Controllers\PostulantePanelController;
+use App\Http\Controllers\AsistenciaListadoController;
+use App\Http\Controllers\VoiceCommandController;
+use App\Http\Controllers\BitacoraController;
 use Illuminate\Support\Facades\Route;
 
 // ============================================
@@ -60,7 +67,7 @@ Route::middleware(['auth'])->group(function () {
     // ============================================
     // POSTULANTE PANEL (dashboard para postulantes)
     // ============================================
-    Route::get('/postulante/dashboard', [App\Http\Controllers\PostulantePanelController::class, 'dashboard'])->name('postulante.dashboard');
+    Route::get('/postulante/dashboard', [PostulantePanelController::class, 'dashboard'])->name('postulante.dashboard');
     
     // ============================================
     // GRUPOS - CRUD + ASIGNACIÓN AUTOMÁTICA
@@ -73,8 +80,9 @@ Route::middleware(['auth'])->group(function () {
     // ============================================
     Route::resource('docentes', DocenteController::class);
     Route::post('/docentes/{docente}/asignar-grupos', [DocenteController::class, 'asignarGrupos'])->name('docentes.asignar-grupos');
+    
     // Ruta para eliminar asignación docente-grupo
-    Route::delete('/asignaciones/{asignacion}', [App\Http\Controllers\AsignacionDocenteController::class, 'destroy'])->name('asignaciones.destroy');
+    Route::delete('/asignaciones/{asignacion}', [AsignacionDocenteController::class, 'destroy'])->name('asignaciones.destroy');
     
     // ============================================
     // CARGA HORARIA (solo para docentes)
@@ -95,7 +103,7 @@ Route::middleware(['auth'])->group(function () {
     // ============================================
     Route::get('/asistencias/create', [AsistenciaController::class, 'create'])->name('asistencias.create');
     Route::post('/asistencias', [AsistenciaController::class, 'store'])->name('asistencias.store');
-    Route::get('/asistencias', [App\Http\Controllers\AsistenciaListadoController::class, 'index'])->name('asistencias.index');
+    Route::get('/asistencias', [AsistenciaListadoController::class, 'index'])->name('asistencias.index');
     
     // ============================================
     // EVALUACIONES - NOTAS POR MATERIA
@@ -116,18 +124,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/reportes/grupos-habilitados', [ReporteController::class, 'gruposHabilitados'])->name('reportes.grupos-habilitados');
     
     // ============================================
-    // CUPOS POR CARRERA
+    // CUPOS POR CARRERA - ASIGNACIÓN AUTOMÁTICA
     // ============================================
-    Route::get('/cupos', function () {
-        $carreras = \App\Models\Carrera::all();
-        return view('cupos', compact('carreras'));
-    })->name('cupos.index');
+    Route::get('/cupos', [AsignacionCuposController::class, 'index'])->name('cupos.index');
+    Route::post('/cupos/asignar', [AsignacionCuposController::class, 'ejecutarAsignacion'])->name('cupo.asignar');
+    // Dentro del grupo auth
+    Route::put('/cupos/{carrera}', [AsignacionCuposController::class, 'update'])->name('cupo.update');
     
     // ============================================
     // ASIGNACIÓN AUTOMÁTICA DE CARRERAS POR MÉRITO
     // ============================================
-    Route::get('/asignacion', [App\Http\Controllers\AsignacionCarrerasController::class, 'index'])->name('asignacion.index');
-    Route::post('/asignacion/ejecutar', [App\Http\Controllers\AsignacionCarrerasController::class, 'asignar'])->name('asignacion.ejecutar');
+    Route::get('/asignacion', [AsignacionCarrerasController::class, 'index'])->name('asignacion.index');
+    Route::post('/asignacion/ejecutar', [AsignacionCarrerasController::class, 'asignar'])->name('asignacion.ejecutar');
     
     // ============================================
     // IMPORTACIÓN DE DATOS
@@ -162,11 +170,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/paypal/capture', [App\Http\Controllers\PayPalController::class, 'captureOrder'])->name('paypal.capture');
     Route::get('/paypal/cancel', [App\Http\Controllers\PayPalController::class, 'cancelOrder'])->name('paypal.cancel');
 
-    // Asistente de voz
-    Route::post('/voice-command', [App\Http\Controllers\VoiceCommandController::class, 'handle'])->name('voice.command');
+    // ============================================
+    // ASISTENTE DE VOZ
+    // ============================================
+    Route::post('/voice-command', [VoiceCommandController::class, 'handle'])->name('voice.command');
 
-    // Bitácora
-    Route::get('/bitacora', [App\Http\Controllers\BitacoraController::class, 'index'])->name('bitacora.index');
-    Route::delete('/bitacora', [App\Http\Controllers\BitacoraController::class, 'limpiar'])->name('bitacora.limpiar');
+    // ============================================
+    // BITÁCORA
+    // ============================================
+    Route::get('/bitacora', [BitacoraController::class, 'index'])->name('bitacora.index');
+    Route::delete('/bitacora', [BitacoraController::class, 'limpiar'])->name('bitacora.limpiar');
    
 });

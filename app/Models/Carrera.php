@@ -17,4 +17,10 @@ class Carrera extends Model
     {
         $this->increment('inscritos_actuales');
     }
+
+    public function postulantesAsignados()
+    {
+        return $this->hasMany(Postulante::class, 'carrera_asignada_id')
+                    ->where('estado_academico', 'aprobado');
+    }
 }
