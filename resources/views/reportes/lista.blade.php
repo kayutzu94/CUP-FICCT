@@ -254,9 +254,30 @@
                 </table>
             </div>
             
+            {{-- Paginación personalizada que mantiene los filtros --}}
             @if($postulantes->hasPages())
-                <div class="mt-4 d-flex justify-content-center custom-pagination-wrapper">
-                    {{ $postulantes->appends(request()->query())->links() }}
+                <div class="mt-4 d-flex justify-content-center">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination shadow-sm">
+                            <li class="page-item {{ $postulantes->onFirstPage() ? 'disabled' : '' }}">
+                                <a class="page-link" href="{{ $postulantes->previousPageUrl() . '&' . http_build_query(request()->except('page')) }}" aria-label="Anterior">
+                                    <span aria-hidden="true">&laquo;</span> Anterior
+                                </a>
+                            </li>
+                            
+                            @foreach ($postulantes->getUrlRange(max(1, $postulantes->currentPage() - 2), min($postulantes->lastPage(), $postulantes->currentPage() + 2)) as $page => $url)
+                                <li class="page-item {{ $page == $postulantes->currentPage() ? 'active' : '' }}">
+                                    <a class="page-link" href="{{ $url . '&' . http_build_query(request()->except('page')) }}">{{ $page }}</a>
+                                </li>
+                            @endforeach
+
+                            <li class="page-item {{ $postulantes->hasMorePages() ? '' : 'disabled' }}">
+                                <a class="page-link" href="{{ $postulantes->nextPageUrl() . '&' . http_build_query(request()->except('page')) }}" aria-label="Siguiente">
+                                    Siguiente <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             @endif
             
@@ -275,7 +296,6 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Mantener desplegado el contenedor de filtros avanzados si hay parámetros activos en él
     const promedioMin = "{{ request('promedio_min') }}";
     const promedioMax = "{{ request('promedio_max') }}";
     const sexo = "{{ request('sexo') }}";
@@ -286,7 +306,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (filtros) filtros.style.display = 'flex';
     }
 
-    // Enter en el input de texto activa submit directo sin perder consistencia
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('keyup', function(e) {
@@ -348,33 +367,11 @@ function mostrarFiltrosActivos() {
 function exportToExcel() {
     let table = document.getElementById('tablaAsignacion');
     let html = table.outerHTML;
-        
-    let title = '<h2>Reporte de Asignación por Mérito</h2>';
-    let date = '<p>Fecha: ' + new Date().toLocaleString() + '</p>';
-        
-    let fullHtml = `
-        <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>Reporte Asignación</title>
-                <style>
-                    th { background-color: #0a2b5e; color: #ffffff; }
-                    td, th { border: 1px solid #ddd; padding: 8px; font-family: sans-serif; }
-                </style>
-            </head>
-            <body>
-                ${title}
-                ${date}
-                ${html}
-            </body>
-        </html>
-    `;
-        
+    let fullHtml = `<html><head><meta charset="UTF-8"><style>th{background-color:#0a2b5e;color:#ffffff;}td,th{border:1px solid #ddd;padding:8px;}</style></head><body><h2>Reporte de Asignación por Mérito</h2>${html}</body></html>`;
     let url = 'data:application/vnd.ms-excel;charset=utf-8,' + encodeURIComponent(fullHtml);
     let link = document.createElement('a');
     link.href = url;
-    link.download = 'reporte_asignacion_merito_' + new Date().toISOString().slice(0,10) + '.xls';
-        
+    link.download = 'reporte_asignacion_' + new Date().toISOString().slice(0,10) + '.xls';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -383,26 +380,7 @@ function exportToExcel() {
 function printTable() {
     let table = document.getElementById('tablaAsignacion');
     let windowRef = window.open('', '_blank');
-    windowRef.document.write(`
-        <html>
-            <head>
-                <title>Reporte de Asignación</title>
-                <style>
-                    body { font-family: Arial, sans-serif; margin: 30px; color: #333; }
-                    th { background-color: #0a2b5e; color: white; padding: 10px; font-size: 13px; }
-                    td, th { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-                    h1 { color: #0a2b5e; margin-bottom: 5px; }
-                    p { margin-top: 0; color: #666; font-size: 13px; }
-                </style>
-            </head>
-            <body>
-                <h1>Reporte de Asignación por Mérito</h1>
-                <p>Fecha de emisión oficial: ${new Date().toLocaleString()}</p>
-                ${table.outerHTML}
-            </body>
-        </html>
-    `);
+    windowRef.document.write(`<html><head><title>Reporte</title><style>body{font-family:Arial,sans-serif;padding:20px;}table{width:100%;border-collapse:collapse;}td,th{border:1px solid #ddd;padding:8px;}</style></head><body><h1>Reporte de Asignación por Mérito</h1>${table.outerHTML}</body></html>`);
     windowRef.document.close();
     windowRef.print();
 }
@@ -411,120 +389,28 @@ function printTable() {
 
 @push('styles')
 <style>
-    /* Estructuras generales y tablas */
-    .custom-table-header {
-        background-color: #0a2b5e !important;
-    }
-    .metric-icon-box {
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .row-hover-effect {
-        transition: background-color 0.15s ease;
-    }
-    .row-hover-effect:hover {
-        background-color: rgba(10, 43, 94, 0.02) !important;
-    }
-
-    /* Bordes e indicadores de tarjetas de métricas */
+    .custom-table-header { background-color: #0a2b5e !important; }
+    .metric-icon-box { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+    .row-hover-effect:hover { background-color: rgba(10, 43, 94, 0.02) !important; }
     .card-indicator-border-success { border-left: 4px solid #28a745 !important; }
     .card-indicator-border-info { border-left: 4px solid #17a2b8 !important; }
     .card-indicator-border-warning { border-left: 4px solid #ffc107 !important; }
     .card-indicator-border-secondary { border-left: 4px solid #6c757d !important; }
-
-    .indicator-circle-bg {
-        width: 42px;
-        height: 42px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        font-size: 1.15rem;
-    }
-
-    /* Badges con contrastes suaves */
+    .indicator-circle-bg { width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
     .bg-success-soft { background-color: rgba(40, 167, 69, 0.12); }
     .bg-danger-soft { background-color: rgba(220, 53, 69, 0.12); }
-    .bg-info-soft { background-color: rgba(23, 162, 184, 0.12); }
     .bg-warning-soft { background-color: rgba(255, 193, 7, 0.14); }
     .bg-secondary-soft { background-color: rgba(108, 117, 125, 0.12); }
     .bg-primary-soft { background-color: rgba(10, 43, 94, 0.08); }
-
     .text-primary-custom { color: #0a2b5e; }
-    .text-info-custom { color: #117a8b; }
     .text-warning-custom { color: #b78a02 !important; }
-
-    /* Estilos de botones */
-    .btn-action {
-        background-color: #0a2b5e;
-        color: white;
-    }
-    .btn-action:hover {
-        background-color: #143f7d;
-        color: white;
-    }
-    .btn-action-info {
-        background-color: #17a2b8;
-    }
-    .btn-action-info:hover {
-        background-color: #117a8b;
-    }
-
-    /* Clases utilitarias fijas */
-    .py-3.5 { padding-top: 1.1rem; padding-bottom: 1.1rem; }
-    .mb-1.5 { margin-bottom: 0.35rem; }
-    .me-2.5 { margin-right: 0.65rem; }
-    .px-2.5 { padding-left: 0.65rem; padding-right: 0.65rem; }
-    .font-size-sm { font-size: 0.9rem; }
-    .font-size-xs { font-size: 0.78rem; }
-    .shadow-2xs { box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .tracking-wider { letter-spacing: 0.05em; }
-
-    .hover-up {
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .hover-up:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
-    }
-
-    .fade-in-fast {
-        animation: fadeInFast 0.25s ease-out;
-    }
-    @keyframes fadeInFast {
-        from { opacity: 0; transform: translateY(4px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .custom-pagination-wrapper nav {
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        border-radius: 0.5rem;
-        overflow: hidden;
-    }
-
-    /* Control CSS nativo para modo impresión */
-    @media print {
-        .btn, .alert, form, .custom-pagination-wrapper, .metric-icon-box {
-            display: none !important;
-        }
-        .card, .card-body {
-            border: none !important;
-            box-shadow: none !important;
-            padding: 0 !important;
-            background: transparent !important;
-        }
-        .table-responsive {
-            overflow: visible !important;
-        }
-        body {
-            padding: 0;
-            margin: 0;
-            background: white;
-        }
-    }
+    .btn-action { background-color: #0a2b5e; color: white; }
+    .btn-action-info { background-color: #17a2b8; color: white; }
+    .hover-up { transition: transform 0.2s; }
+    .hover-up:hover { transform: translateY(-2px); }
+    .fade-in-fast { animation: fadeInFast 0.25s ease-out; }
+    @keyframes fadeInFast { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    @media print { .btn, .alert, form, .custom-pagination-wrapper, .metric-icon-box { display: none !important; } }
 </style>
 @endpush
 @endsection

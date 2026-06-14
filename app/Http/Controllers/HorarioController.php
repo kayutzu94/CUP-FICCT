@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 
 class HorarioController extends Controller
 {
-    // CU17: Asignar horario, aula y materia
     public function create()
     {
         $grupos = Grupo::all();
@@ -34,43 +33,16 @@ class HorarioController extends Controller
             'hora_fin' => 'required|after:hora_inicio',
         ]);
         
-        // Verificar conflicto de aula
-        $conflicto = Horario::where('aula_id', $request->aula_id)
-            ->where('dia', $request->dia)
-            ->where(function($q) use ($request) {
-                $q->whereBetween('hora_inicio', [$request->hora_inicio, $request->hora_fin])
-                  ->orWhereBetween('hora_fin', [$request->hora_inicio, $request->hora_fin]);
-            })->exists();
-            
-        if ($conflicto) {
-            return back()->with('error', 'El aula ya está ocupada en ese horario');
+        $error = $this->verificarConflictos($request);
+        if ($error) {
+            return back()->with('error', $error);
         }
         
         Horario::create($request->all());
         
-        return redirect()->route('horarios.create')->with('success', 'Horario asignado exitosamente');
+        return redirect()->route('horarios.create')->with('success', '✅ Horario asignado exitosamente');
     }
 
-    //Eliminar horario asignado
-    public function destroy(Horario $horario)
-    {
-        $horario->delete();
-        return redirect()->route('horarios.create')
-            ->with('success', 'Horario eliminado exitosamente');
-    }
-
-    // Mostrar formulario de edición
-    public function edit(Horario $horario)
-    {
-        $grupos = \App\Models\Grupo::all();
-        $materias = \App\Models\Materia::all();
-        $docentes = \App\Models\Docente::all();
-        $aulas = \App\Models\Aula::all();
-        
-        return view('horarios.edit', compact('horario', 'grupos', 'materias', 'docentes', 'aulas'));
-    }
-
-    // Actualizar horario
     public function update(Request $request, Horario $horario)
     {
         $request->validate([
@@ -83,21 +55,67 @@ class HorarioController extends Controller
             'hora_fin' => 'required|after:hora_inicio',
         ]);
         
-        // Verificar conflicto de aula (excluyendo el horario actual)
-        $conflicto = \App\Models\Horario::where('aula_id', $request->aula_id)
-            ->where('dia', $request->dia)
-            ->where('id', '!=', $horario->id)
-            ->where(function($q) use ($request) {
-                $q->whereBetween('hora_inicio', [$request->hora_inicio, $request->hora_fin])
-                ->orWhereBetween('hora_fin', [$request->hora_inicio, $request->hora_fin]);
-            })->exists();
-            
-        if ($conflicto) {
-            return back()->with('error', 'El aula ya está ocupada en ese horario');
+        $error = $this->verificarConflictos($request, $horario->id);
+        if ($error) {
+            return back()->with('error', $error);
         }
         
         $horario->update($request->all());
         
-        return redirect()->route('horarios.create')->with('success', 'Horario actualizado');
+        return redirect()->route('horarios.create')->with('success', '✅ Horario actualizado exitosamente');
+    }
+
+    /**
+     * Lógica unificada para verificar conflictos de horario
+     */
+    private function verificarConflictos(Request $request, $excluirId = null)
+    {
+        $model = Horario::where('dia', $request->dia)
+            ->where(function($q) use ($request) {
+                $q->whereBetween('hora_inicio', [$request->hora_inicio, $request->hora_fin])
+                  ->orWhereBetween('hora_fin', [$request->hora_inicio, $request->hora_fin])
+                  ->orWhere(function($q2) use ($request) {
+                      $q2->where('hora_inicio', '<=', $request->hora_inicio)
+                         ->where('hora_fin', '>=', $request->hora_fin);
+                  });
+            });
+
+        if ($excluirId) {
+            $model->where('id', '!=', $excluirId);
+        }
+
+        // 1. Conflicto Docente
+        if ((clone $model)->where('docente_id', $request->docente_id)->exists()) {
+            return '❌ El docente ya tiene otra clase asignada en ese horario.';
+        }
+
+        // 2. Conflicto Grupo
+        if ((clone $model)->where('grupo_id', $request->grupo_id)->exists()) {
+            return '❌ El grupo ya tiene otra clase asignada en ese horario.';
+        }
+
+        // 3. Conflicto Aula
+        if ((clone $model)->where('aula_id', $request->aula_id)->exists()) {
+            return '❌ El aula ya está ocupada en ese horario.';
+        }
+
+        return null;
+    }
+
+    public function destroy(Horario $horario)
+    {
+        $horario->delete();
+        return redirect()->route('horarios.create')
+            ->with('success', 'Horario eliminado exitosamente');
+    }
+
+    public function edit(Horario $horario)
+    {
+        $grupos = Grupo::all();
+        $materias = Materia::all();
+        $docentes = Docente::all();
+        $aulas = Aula::all();
+        
+        return view('horarios.edit', compact('horario', 'grupos', 'materias', 'docentes', 'aulas'));
     }
 }

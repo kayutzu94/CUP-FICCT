@@ -18,17 +18,22 @@ class DocenteController extends Controller
     {
         $query = Docente::query()->with('asignaciones');
         
-        // Filtro por cumplimiento de requisitos mapeado a tu base de datos
+        // Filtro por cumplimiento de requisitos
         if ($request->has('filter_requisitos')) {
             if ($request->filter_requisitos === 'cumple') {
-                $query->where('tiene_maestria', true)
-                      ->where('tiene_diplomado_educacion', true)
-                      ->where('activo', true);
+                // Usar los campos correctos según tu modelo
+                $query->where(function($q) {
+                    $q->where('titulo_profesional', true)
+                    ->where('tiene_maestria', true)
+                    ->where('tiene_diplomado_docencia', true)
+                    ->where('activo', true);
+                });
             } elseif ($request->filter_requisitos === 'no_cumple') {
                 $query->where(function($q) {
-                    $q->where('tiene_maestria', false)
-                      ->orWhere('tiene_diplomado_educacion', false)
-                      ->orWhere('activo', false);
+                    $q->where('titulo_profesional', false)
+                    ->orWhere('tiene_maestria', false)
+                    ->orWhere('tiene_diplomado_docencia', false)
+                    ->orWhere('activo', false);
                 });
             }
         }
@@ -78,29 +83,43 @@ class DocenteController extends Controller
         return redirect()->route('docentes.index')->with('success', $mensaje);
     }
 
-    // CU16: Asignar docente a grupos (1-4 grupos) - MODIFICADO CON DOS VALIDACIONES
+    // CU16: Asignar docente a grupos (1-4 grupos) - MODIFICADO CON TRES VALIDACIONES
     public function asignarGrupos(Request $request, Docente $docente)
     {
         // VALIDACIÓN 1: VERIFICAR REQUISITOS DEL DOCENTE
         if (!$docente->cumpleRequisitos()) {
             $pendientes = $docente->getRequisitosPendientes();
             $mensaje = sprintf(
-                '❌ No se puede asignar. El docente %s NO cumple con los requisitos necesarios.📋 Faltan: %s',
+                '❌ No se puede asignar. El docente %s NO cumple con los requisitos necesarios. 📋 Faltan: %s',
                 $docente->nombre_completo,
-                $implode = implode(', ', $pendientes)
+                implode(', ', $pendientes)
             );
             
-            return redirect()->route('docentes.index')
-                ->with('error', $mensaje);
+            return redirect()->route('docentes.index')->with('error', $mensaje);
         }
         
-        // VALIDACIÓN 2: VERIFICAR LÍMITE DE GRUPOS (MÁXIMO 4)
+        // VALIDACIÓN 2: VERIFICAR LÍMITE DE GRUPOS Y ESTRUCTURA
         $request->validate([
             'grupos' => 'required|array|min:1',
             'grupos.*' => 'exists:grupos,id',
             'materia_id' => 'required|exists:materias,id',
         ]);
+
+        // VALIDACIÓN 3: VERIFICAR QUE EL DOCENTE PUEDA IMPARTIR LA MATERIA
+        $materiaId = $request->materia_id;
+        $materia = Materia::find($materiaId);
         
+        if (!$docente->puedeImpartirMateria($materiaId)) {
+            $materiasHabilitadas = $docente->getMateriasHabilitadasList();
+            $nombresMaterias = $materiasHabilitadas->pluck('nombre')->implode(', ');
+            
+            return redirect()->route('docentes.index')->with('error', 
+                "❌ El docente {$docente->nombre_completo} NO está habilitado para impartir la materia '{$materia->nombre}'. " .
+                "Materias que puede impartir: " . ($nombresMaterias ?: 'Ninguna según especialidad.')
+            );
+        }
+        
+        // VERIFICAR LÍMITE DE ASIGNACIONES (Máximo 4)
         $asignacionesActuales = AsignacionDocente::where('docente_id', $docente->id)->count();
         $nuevasAsignaciones = count($request->grupos);
         $totalAsignaciones = $asignacionesActuales + $nuevasAsignaciones;
@@ -116,8 +135,7 @@ class DocenteController extends Controller
                 $totalAsignaciones
             );
             
-            return redirect()->route('docentes.index')
-                ->with('error', $mensaje);
+            return redirect()->route('docentes.index')->with('error', $mensaje);
         }
         
         // REALIZAR LAS ASIGNACIONES

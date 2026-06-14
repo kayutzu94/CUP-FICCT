@@ -73,6 +73,8 @@ Route::middleware(['auth'])->group(function () {
     // ============================================
     Route::resource('docentes', DocenteController::class);
     Route::post('/docentes/{docente}/asignar-grupos', [DocenteController::class, 'asignarGrupos'])->name('docentes.asignar-grupos');
+    // Ruta para eliminar asignación docente-grupo
+    Route::delete('/asignaciones/{asignacion}', [App\Http\Controllers\AsignacionDocenteController::class, 'destroy'])->name('asignaciones.destroy');
     
     // ============================================
     // CARGA HORARIA (solo para docentes)

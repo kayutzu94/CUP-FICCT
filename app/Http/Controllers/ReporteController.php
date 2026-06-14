@@ -176,9 +176,18 @@ class ReporteController extends Controller
     // CU29: Reporte de Docentes por Grupos
     public function docentesPorGrupos()
     {
-        $grupos = Grupo::with(['aula', 'docentesAsignados'])->get();
+        // Obtener todas las asignaciones con sus relaciones
+        $asignaciones = AsignacionDocente::with(['docente', 'grupo', 'materia'])
+                                        ->orderBy('created_at', 'desc')
+                                        ->get();
         
-        return view('reportes.docentes_por_grupos', compact('grupos'));
+        // También agrupar por grupo para vista alternativa
+        $asignacionesPorGrupo = $asignaciones->groupBy('grupo_id');
+        
+        // Depuración: Verificar si hay datos
+        \Log::info('Asignaciones encontradas: ' . $asignaciones->count());
+        
+        return view('reportes.docentes_por_grupos', compact('asignaciones', 'asignacionesPorGrupo'));
     }
 
     // CU30: Reporte de Grupos con mayor cantidad de aprobados
