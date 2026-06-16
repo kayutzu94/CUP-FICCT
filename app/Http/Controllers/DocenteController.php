@@ -83,7 +83,7 @@ class DocenteController extends Controller
         return redirect()->route('docentes.index')->with('success', $mensaje);
     }
 
-    // CU16: Asignar docente a grupos (1-4 grupos) - MODIFICADO CON TRES VALIDACIONES
+    // CU16: Asignar docente a grupos (1-4 grupos) 
     public function asignarGrupos(Request $request, Docente $docente)
     {
         // VALIDACIÓN 1: VERIFICAR REQUISITOS DEL DOCENTE

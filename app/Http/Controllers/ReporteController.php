@@ -12,7 +12,7 @@ use App\Models\AsignacionDocente;
 
 class ReporteController extends Controller
 {
-    // CU22: Reporte lista general de postulantes (Mejorado con filtros robustos y avanzados)
+    // CU22: Reporte lista general de postulantes
     public function lista(Request $request)
     {
         // Query base: solo aprobados
